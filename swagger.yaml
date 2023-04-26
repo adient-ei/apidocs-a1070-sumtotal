@@ -1,718 +1,5292 @@
----
-swagger: "2.0"
+openapi: 3.0.1
 info:
-  description: "This is a sample server Petstore server.  You can find out more about\
-    \ Swagger at [http://swagger.io](http://swagger.io) or on [irc.freenode.net, #swagger](http://swagger.io/irc/).\
-    \  For this sample, you can use the api key `special-key` to test the authorization\
-    \ filters."
-  version: "1.0.5"
-  title: "Swagger Petstore"
-  termsOfService: "http://swagger.io/terms/"
-  contact:
-    email: "apiteam@swagger.io"
-  license:
-    name: "Apache 2.0"
-    url: "http://www.apache.org/licenses/LICENSE-2.0.html"
-host: "petstore.swagger.io"
-basePath: "/v2"
-tags:
-- name: "pet"
-  description: "Everything about your Pets"
-  externalDocs:
-    description: "Find out more"
-    url: "http://swagger.io"
-- name: "store"
-  description: "Access to Petstore orders"
-- name: "user"
-  description: "Operations about user"
-  externalDocs:
-    description: "Find out more about our store"
-    url: "http://swagger.io"
-schemes:
-- "https"
-- "http"
+  title: Sumtotal APIs
+  version: 1.0.0
+servers:
+  - url: https://apigatewaydev.adient.com/sumtotal/v1
+    description: Dev
+    variables:
+      scheme:
+        enum:
+          - https
+        default: https
+  - url: https://apigatewayqa.adient.com/sumtotal/v1
+    description: Quality
+    variables:
+      scheme:
+        enum:
+          - https
+        default: https
+  - url: https://apigateway.adient.com/sumtotal/v1
+    description: Production
+    variables:
+      scheme:
+        enum:
+          - https
+        default: https
 paths:
-  /pet/{petId}/uploadImage:
-    post:
-      tags:
-      - "pet"
-      summary: "uploads an image"
-      description: ""
-      operationId: "uploadFile"
-      consumes:
-      - "multipart/form-data"
-      produces:
-      - "application/json"
-      parameters:
-      - name: "petId"
-        in: "path"
-        description: "ID of pet to update"
-        required: true
-        type: "integer"
-        format: "int64"
-      - name: "additionalMetadata"
-        in: "formData"
-        description: "Additional data to pass to server"
-        required: false
-        type: "string"
-      - name: "file"
-        in: "formData"
-        description: "file to upload"
-        required: false
-        type: "file"
-      responses:
-        200:
-          description: "successful operation"
-          schema:
-            $ref: "#/definitions/ApiResponse"
-      security:
-      - petstore_auth:
-        - "write:pets"
-        - "read:pets"
-  /pet:
-    post:
-      tags:
-      - "pet"
-      summary: "Add a new pet to the store"
-      description: ""
-      operationId: "addPet"
-      consumes:
-      - "application/json"
-      - "application/xml"
-      produces:
-      - "application/json"
-      - "application/xml"
-      parameters:
-      - in: "body"
-        name: "body"
-        description: "Pet object that needs to be added to the store"
-        required: true
-        schema:
-          $ref: "#/definitions/Pet"
-      responses:
-        405:
-          description: "Invalid input"
-      security:
-      - petstore_auth:
-        - "write:pets"
-        - "read:pets"
-    put:
-      tags:
-      - "pet"
-      summary: "Update an existing pet"
-      description: ""
-      operationId: "updatePet"
-      consumes:
-      - "application/json"
-      - "application/xml"
-      produces:
-      - "application/json"
-      - "application/xml"
-      parameters:
-      - in: "body"
-        name: "body"
-        description: "Pet object that needs to be added to the store"
-        required: true
-        schema:
-          $ref: "#/definitions/Pet"
-      responses:
-        400:
-          description: "Invalid ID supplied"
-        404:
-          description: "Pet not found"
-        405:
-          description: "Validation exception"
-      security:
-      - petstore_auth:
-        - "write:pets"
-        - "read:pets"
-  /pet/findByStatus:
+  /users/{username}/summary:
     get:
       tags:
-      - "pet"
-      summary: "Finds Pets by status"
-      description: "Multiple status values can be provided with comma separated strings"
-      operationId: "findPetsByStatus"
-      produces:
-      - "application/json"
-      - "application/xml"
+        - User
+      summary: Returns User Summary By Username
+      description: 'User Detail Summary of the specified Username'
+      operationId: UserInformation_UserSummaryByUsername
       parameters:
-      - name: "status"
-        in: "query"
-        description: "Status values that need to be considered for filter"
-        required: true
-        type: "array"
-        items:
-          type: "string"
+        - name: username
+          in: path
+          description: Username of the User to lookup
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserSummaryDTO'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInvalidAuthorizationKey'
+        '404':
+          description: Resource Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorNotFound'
+  /users/{userId}/transcripts:
+    get:
+      tags:
+        - User
+      summary: Returns the User Transcripts
+      description: "This API exposes the Transcripts of the specified User. Fields in that has the prefix of requestDto must be included in the body e.g. request.Flag"
+      operationId: V2UserInformation_GetUserTranscript
+      parameters:
+        - name: userId
+          in: path
+          description: User ID
+          required: true
+          schema:
+            type: string
+            default: ''
+        - name: page
+          in: query
+          description: The position of the backend record from which the results would be shown
+          required: false
+          schema:
+            type: integer
+            format: int32
+            default: 0
+        - name: limit
+          in: query
+          description: The number of records that should be fetched by the call.
+          required: false
+          schema:
+            type: integer
+            format: int32
+            default: 10
+        - name: sortColumn
+          in: query
+          description: 'Column to Sort by: CompletionDate = 6, ExpirationDate = 7'
+          required: false
+          schema:
+            type: string
+            default: '6'
+            enum:
+              - '6'
+              - '7'
+        - name: sortDirection
+          in: query
+          description: Direction of sorting, Ascending = 1 or Descending = 2
+          required: false
+          schema:
+            type: string
+            default: '1'
+            enum:
+              - '1'
+              - '2'
+        - name: requestDto.flag
+          in: query
+          description: Use to specify type of Activities return 1 = Standard Activities, 2 = Self-Reported Training, 3 = Continuing Education. If nothing is specified Standard activities along with Self-Reported Training are returned
+          required: false
+          schema:
+            type: integer
+            format: int32
+        - name: requestDto.startDate
+          in: query
+          description: Start Date of Activities
+          required: false
+          schema:
+            type: string
+            format: date-time
+        - name: requestDto.endDate
+          in: query
+          description: End Date of Activities
+          required: false
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: Successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedData-TranscriptActivityDto'
+        '400':
+          description: Triggers when valid user is not found in the request.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequestResult'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInvalidAuthorizationKey'
+        '404':
+          description: Resource Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorNotFound'
+        '500':
+          description: An unexpected error has occurred
+security:
+  - ApiKeyAuth: []
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      name: Authorization
+      in: header
+  schemas:
+    UserSummaryPersonOptional1DTO:
+      title: personOptional
+      description: Object for Person Optional Information
+      type: object
+      properties:
+        text1:
+          description: An optional text field
+          type: string
+        text2:
+          description: An optional text field
+          type: string
+        text3:
+          description: An optional text field
+          type: string
+        text4:
+          description: An optional text field
+          type: string
+        text5:
+          description: An optional text field
+          type: string
+        text6:
+          description: An optional text field
+          type: string
+        text7:
+          description: An optional text field
+          type: string
+        text8:
+          description: An optional text field
+          type: string
+        text9:
+          description: An optional text field
+          type: string
+        text10:
+          description: An optional text field
+          type: string
+        text11:
+          description: An optional text field
+          type: string
+        text12:
+          description: An optional text field
+          type: string
+        text13:
+          description: An optional text field
+          type: string
+        text14:
+          description: An optional text field
+          type: string
+        text15:
+          description: An optional text field
+          type: string
+        text16:
+          description: An optional text field
+          type: string
+        text17:
+          description: An optional text field
+          type: string
+        text18:
+          description: An optional text field
+          type: string
+        text19:
+          description: An optional text field
+          type: string
+        text20:
+          description: An optional text field
+          type: string
+        date1:
+          format: date-time
+          description: An optional date field. Use 0001-01-01 for NULL date.
+          type: string
+        date2:
+          format: date-time
+          description: An optional date field. Use 0001-01-01 for NULL date.
+          type: string
+        date3:
+          format: date-time
+          description: An optional date field. Use 0001-01-01 for NULL date.
+          type: string
+        date4:
+          format: date-time
+          description: An optional date field. Use 0001-01-01 for NULL date.
+          type: string
+        date5:
+          format: date-time
+          description: An optional date field. Use 0001-01-01 for NULL date.
+          type: string
+        money1:
+          format: double
+          description: An optional money field
+          type: number
+        money2:
+          format: double
+          description: An optional money field
+          type: number
+        money3:
+          format: double
+          description: An optional money field
+          type: number
+        money4:
+          format: double
+          description: An optional money field
+          type: number
+        money5:
+          format: double
+          description: An optional money field
+          type: number
+        integer1:
+          format: int32
+          description: An optional integer field
+          type: integer
+        integer2:
+          format: int32
+          description: An optional integer field
+          type: integer
+        integer3:
+          format: int32
+          description: An optional integer field
+          type: integer
+        integer4:
+          format: int32
+          description: An optional integer field
+          type: integer
+        integer5:
+          format: int32
+          description: An optional integer field
+          type: integer
+        float1:
+          format: double
+          description: An optional float field
+          type: number
+        float2:
+          format: double
+          description: An optional float field
+          type: number
+        float3:
+          format: double
+          description: An optional float field
+          type: number
+        float4:
+          format: double
+          description: An optional float field
+          type: number
+        float5:
+          format: double
+          description: An optional float field
+          type: number
+        ind1:
+          description: An optional indicator (flag) field
+          type: boolean
+        ind2:
+          description: An optional indicator (flag) field
+          type: boolean
+        ind3:
+          description: An optional indicator (flag) field
+          type: boolean
+        ind4:
+          description: An optional indicator (flag) field
+          type: boolean
+        ind5:
+          description: An optional indicator (flag) field
+          type: boolean
+        memo1:
+          description: An optional memo field
+          type: string
+        memo2:
+          description: An optional memo field
+          type: string
+        memo3:
+          description: An optional memo field
+          type: string
+        memo4:
+          description: An optional memo field
+          type: string
+        memo5:
+          description: An optional memo field
+          type: string
+        decimal1:
+          format: double
+          description: An optional decimal field
+          type: number
+        decimal2:
+          format: double
+          description: An optional decimal field
+          type: number
+        decimal3:
+          format: double
+          description: An optional decimal field
+          type: number
+        decimal4:
+          format: double
+          description: An optional decimal field
+          type: number
+        decimal5:
+          format: double
+          description: An optional decimal field
+          type: number
+    UserSummaryPersonRelationDTO:
+      title: personRelation
+      description: Object for Person to Person relationship
+      type: object
+      properties:
+        jobTitle:
+          description: Job Title
+          type: string
+        locationName:
+          description: Location Name
+          type: string
+        locationCode:
+          description: Location Code
+          type: string
+    UserSummaryPersonCommunicationDTO:
+      title: personCommunication
+      description: Object to specify Person Communication details
+      type: object
+      properties:
+        email1:
+          description: Email 1
+          type: string
+        email2:
+          description: Email 2
+          type: string
+        address1:
+          description: Address 1
+          type: string
+        address2:
+          description: Address 2
+          type: string
+        address3:
+          description: Address 3
+          type: string
+        city:
+          description: City
+          type: string
+        stateName:
+          description: State
+          type: string
+        county:
+          description: County
+          type: string
+        country:
+          description: Country
+          type: string
+        zip:
+          description: Zip
+          type: string
+        phone:
+          description: Phone
+          type: string
+        phoneExt:
+          description: Phone Extension
+          type: string
+        pagerNumber:
+          description: Pager Number
+          type: string
+        fax1:
+          description: Fax 1
+          type: string
+        fax2:
+          description: Fax 2
+          type: string
+        isPrimary:
+          description: Is Primary. This field will default to True
+          type: boolean
+        mobile:
+          description: Mobile
+          type: string
+        emailFormat:
+          description: Email format. 1 - HTML 0 - Plain text
+          type: boolean
+        emergency:
+          description: Emergency
+          type: string
+        twitterURL:
+          description: Twitter URL
+          type: string
+        linkedInURL:
+          description: LinkedIn URL
+          type: string
+        facebookURL:
+          description: Facebook URL
+          type: string
+        googlePlusURL:
+          description: Google Plus URL
+          type: string
+    PersonSecurityRoleDTO:
+      description: Person Security Role
+      type: object
+      properties:
+        id:
+          description: Gets or sets the id of the security role
+          type: string
+        name:
+          description: Gets or sets the name of the security role
+          type: string
+        description:
+          description: Gets or sets the description of the security role
+          type: string
+    UserSummaryDTO:
+      description: User Information
+      type: object
+      properties:
+        username:
+          description: Username of the person
+          type: string
+        firstName:
+          description: First name of the person
+          type: string
+        lastName:
+          description: Last name of the person
+          type: string
+        fullName:
+          description: Full name of the person
+          type: string
+        middleName:
+          description: Middle name of the person
+          type: string
+        firstNameNative:
+          description: Native first name of the person
+          type: string
+        lastNameNative:
+          description: Native last name of the person
+          type: string
+        friendlyName:
+          description: Friendly name of the person
+          type: string
+        description:
+          description: Description of the person
+          type: string
+        primaryDomain:
+          description: Primary Domain of the person
+          type: string
+        primaryDomainCode:
+          description: Primary Domain Code of the person
+          type: string
+        email:
+          description: Email of the person
+          type: string
+        jobTitle:
+          description: Job title of the person
+          type: string
+        startDate:
+          format: date-time
+          description: Start Date of the person
+          type: string
+        endDate:
+          format: date-time
+          description: End Date of the person
+          type: string
+        url:
+          description: Learn Url of the person
+          type: string
+        suffixCode:
+          description: Name suffix (Code). Maps to the "Item Code" field for the category code 4011
+          type: string
+        suffix:
+          description: Gets or sets the suffix text of the person
+          type: string
+        prefixCode:
+          description: Name prefix (Code). Maps to the "Item Code" field for the category code 4002
+          type: string
+        prefix:
+          description: Gets or sets the prefix text of the person
+          type: string
+        addressCity:
+          description: Address City of the person
+          type: string
+        imagePath:
+          description: ImagePath of the person
+          type: string
+        imageUrl:
+          description: Image URL of the person
+          type: string
+        userId:
+          description: Employee Number of person
+          type: string
+        personId:
+          format: int32
+          description: Employee Id of person
+          type: integer
+        noteText:
+          description: Employee Note Text
+          type: string
+        companyName:
+          description: Company Name
+          type: string
+        companyCode:
+          description: Company Code
+          type: string
+        timeZoneCode:
+          description: Time Zone (Code). Maps to the "Item Code" field for the category code 3007
+          type: string
+        timeZone:
+          description: Time Zone Text
+          type: string
+        localeCode:
+          description: Locale (Code). Maps to the "Item Code" field for the category code 1201
+          type: string
+        locale:
+          description: Locale Text
+          type: string
+        ethnicityCode:
+          description: Ethnicity (Code). Maps to the "Item Code" field for the category code 23115
+          type: string
+        ethnicity:
+          description: Ethnicity Text
+          type: string
+        genderCode:
+          description: Gender (Code). Maps to the "Item Code" field for the category code 2518
+          type: string
+        gender:
+          description: Gender Text
+          type: string
+        birthDate:
+          format: date-time
+          description: Birth Date
+          type: string
+        govtId:
+          description: User's government ID
+          type: string
+        typeCode:
+          format: int32
+          description: Employee Type (Code). Maps to the "Item Code" field for the category code 4030
+          type: integer
+        employeeType:
+          description: Employee Type Text
+          type: string
+        currencyCode:
+          description: Currency (Code). Maps to the "Item Code" field for the category code 1098
+          type: string
+        currency:
+          description: Currency Text
+          type: string
+        primaryJob:
+          description: Primary Job
+          type: string
+        maritalStatus:
+          description: Marital Status
+          type: string
+        veteranStatus:
+          description: Veteran Status
+          type: string
+        securityRole:
+          $ref: '#/components/schemas/PersonSecurityRoleDTO'
+          description: Security role of the person
+        organizations:
+          description: Organizations of the person
+          type: array
+          items:
+            $ref: '#/components/schemas/OrganizationPersonDTO'
+        businessAddress:
+          $ref: '#/components/schemas/UserSummaryPersonCommunicationDTO'
+          description: Business Address
+        homeAddress:
+          $ref: '#/components/schemas/UserSummaryPersonCommunicationDTO'
+          description: Home Address
+        personOptional:
+          $ref: '#/components/schemas/UserSummaryPersonOptional1DTO'
+          description: Person Optional Fields
+        personRelation:
+          $ref: '#/components/schemas/UserSummaryPersonRelationDTO'
+          description: Person Relation
+    ErrorInvalidAuthorizationKey:
+      type: object
+      description: Error Message for Invalid Authorization Key
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: "401"
+            message:
+              type: string
+              example: "Invalid Authorization key for resource"
+    ErrorNotFound:
+      type: object
+      description: Error Message for Resource not found
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: "404"
+            message:
+              type: string
+              example: "Resource Not Found"
+    AdminActivityDTO:
+      description: Admin Activity DTO
+      type: object
+      properties:
+        id:
+          format: int32
+          description: Gets Activity Id
+          type: integer
+        name:
+          description: Gets Activity Name
+          type: string
+        code:
+          description: Gets Activity Code
+          type: string
+        activityType:
+          $ref: '#/components/schemas/ActivityLabelDTO'
+          description: Gets  Activity Type
+        description:
+          description: Gets Activity Description
+          type: string
+        active:
+          description: Gets Active status
+          type: boolean
+        noRegistrationRequired:
+          description: Gets  No Registration Required flag
+          type: boolean
+        cancelled:
+          description: Gets  Activity Cancelled status
+          type: boolean
+        hidden:
+          description: Gets Activity Hidden flag
+          type: boolean
+        schedule:
+          $ref: '#/components/schemas/ActivitySchedule'
+          description: Gets Activity Schedule information
+        isCertification:
+          description: Gets Certification flag
+          type: boolean
+        requiresApproval:
+          description: Gets Activity Requires Approval flag
+          type: boolean
+        capacity:
+          format: int32
+          description: Gets Activity Capacity value
+          type: integer
+        required:
+          description: Gets Activity Required flag
+          type: boolean
+        published:
+          format: date-time
+          description: Gets activity last Published date
+          type: string
+        lastUpdated:
+          format: date-time
+          description: Gets Activity Last Updated date
+          type: string
+        canExpressInterest:
+          description: Gets CanExpress Interest flag
+          type: boolean
+        isMobileEnabled:
+          description: Gets Is Mobile Enabled flag
+          type: boolean
+        estimatedDurationSeconds:
+          format: int32
+          description: Gets Estimated Duration in seconds
+          type: integer
+        cbtLaunchMethod:
+          $ref: '#/components/schemas/Nullable-KeyValuePair-Int32-String'
+          description: Gets Activity launch method details
+        keywords:
+          description: Gets Keywords
+          type: string
+        contact:
+          description: Gets Activity Contact information
+          type: string
+        emailPersonel:
+          description: Gets Activity Email Personel
+          type: string
+        ownerId:
+          description: Gets Activity Owner Id
+          type: string
+        activityNotes:
+          $ref: '#/components/schemas/ActivityNotes'
+          description: Gets Activity Notes details
+        estimatedCreditHoursSeconds:
+          format: double
+          description: Gets  Estimated Credit Hours in seconds
+          type: number
+        systemMetaData:
+          $ref: '#/components/schemas/SystemMetaDataDTO'
+          description: Gets System Metadata details
+        optionalFields:
+          $ref: '#/components/schemas/ActivityOptionalFieldsDTO'
+          description: Gets Optional Fields
+        parentActivityId:
+          format: int32
+          description: Gets Parent Activity Id
+          type: integer
+        rootActivityId:
+          format: int32
+          description: Gets Root Activity Id
+          type: integer
+        activityTranslator:
+          description: Gets Activity Translated properties
+          type: array
+          items:
+            $ref: '#/components/schemas/ActivityTranslatorDTO'
+        domainDetails:
+          description: Gets Activity primary Domain Details
+          type: array
+          items:
+            $ref: '#/components/schemas/DomainDetailsDTO'
+        resources:
+          $ref: '#/components/schemas/ResourcesDTO'
+          description: Gets Resources information
+        preRequisiteActivities:
+          description: Gets PreRequisite Activities
+          type: array
+          items:
+            format: int32
+            type: integer
+        topicDetails:
+          description: Gets Activity Topic Details
+          type: array
+          items:
+            $ref: '#/components/schemas/TopicsDTO'
+        activityLinks:
+          $ref: '#/components/schemas/ActivityLinksDTO'
+          description: Gets Activity Links
+        children:
+          description: Gets Child Activities
+          type: array
+          items:
+            $ref: '#/components/schemas/ActivityChildrenDTO'
+        activityImageUrl:
+          description: Gets or Sets Activity Image Url
+          type: string
+        isExtendedEnterpriseEnabled:
+          description: Gets or Sets is Extended Enterprise Enabled flag
+          type: boolean
+        extendedEnterpriseDuration:
+          format: int32
+          description: Gets or sets Estimated Duration in days
+          type: integer
+        xapiActivityId:
+          description: Gets or Sets is XAPIActivityId
+          type: string
+        xapiActivityTypeId:
+          description: Gets or Sets is xAPIActivityTypeId
+          type: string
+    ActivityLabelDTO:
+      description: Activity Label DTO
+      type: object
+      properties:
+        id:
+          format: int32
+          description: Gets activity type Id
+          type: integer
+        name:
+          description: Gets activity type Name
+          type: string
+    ActivitySchedule:
+      description: Activity Schedule DTO
+      type: object
+      properties:
+        timeZone:
+          $ref: '#/components/schemas/KeyValuePair-Int32-String'
+          description: Gets Activity schedule time Zone
+        startDate:
+          format: date-time
+          description: Gets schedule Start Date
+          type: string
+        endDate:
+          format: date-time
+          description: Gets schedule End Date
+          type: string
+        registrationDeadline:
+          format: date-time
+          description: Gets activity Registration Deadline date
+          type: string
+        cancellationDeadline:
+          format: date-time
+          description: Gets activity Cancellation Deadline date
+          type: string
+    Nullable-KeyValuePair-Int32-String:
+      type: object
+      properties:
+        key:
+          format: int32
+          type: integer
+          readOnly: true
+        value:
+          type: string
+          readOnly: true
+    ActivityNotes:
+      description: Activity Notes DTO
+      type: object
+      properties:
+        registrationInstructions:
+          description: Gets Registration Instructions
+          type: string
+        userNotes:
+          description: Gets User Notes
+          type: string
+        instructorNotes:
+          description: Gets Instructor Notes
+          type: string
+    SystemMetaDataDTO:
+      description: System Meta Data DTO
+      type: object
+      properties:
+        mediaType:
+          $ref: '#/components/schemas/KeyValuePair-Int32-String'
+          description: Gets Media type
+        deliveryMethod:
+          $ref: '#/components/schemas/KeyValuePair-Int32-String'
+          description: Gets Delivery Method
+        contentType:
+          $ref: '#/components/schemas/KeyValuePair-Int32-String'
+          description: Gets Content Type
+        expirationDate:
+          format: date-time
+          description: Gets Expiration Date
+          type: string
+        language:
+          $ref: '#/components/schemas/KeyValuePair-Int32-String'
+          description: Gets Language
+        modalityList:
+          description: Gets Modality List
+          type: array
+          items:
+            $ref: '#/components/schemas/KeyValuePair-Int32-String'
+    ActivityOptionalFieldsDTO:
+      description: Activity Optional Fields DTO.
+      type: object
+      properties:
+        optionalText1:
+          description: Gets or sets the optional text1
+          type: string
+        optionalText2:
+          description: Gets or sets the optional text2
+          type: string
+        optionalText3:
+          description: Gets or sets the optional text3
+          type: string
+        optionalText4:
+          description: Gets or sets the optional text4
+          type: string
+        optionalMemo1:
+          description: Gets or sets the optional memo1
+          type: string
+        optionalDate1:
+          description: Gets or sets the optional date1
+          type: string
+        optionalDate2:
+          description: Gets or sets the optional date2
+          type: string
+        optionalYesNo:
+          description: Gets or sets the optional yesno
+          type: string
+        optionalMoney:
+          format: float
+          description: Gets or sets the optional money
+          type: number
+        optionalInteger:
+          format: int32
+          description: Gets or sets the optional integer
+          type: integer
+        optionalFloat:
+          format: float
+          description: Gets or sets the optional float
+          type: number
+        optionalCurrencyId:
+          format: int32
+          description: Gets or sets the optional currency id
+          type: integer
+        optionalCurrency:
+          description: Gets or sets the optional currency
+          type: string
+    ActivityTranslatorDTO:
+      description: Activity Translator DTO
+      type: object
+      properties:
+        language:
+          description: Gets or sets Language
+          type: string
+        activityName:
+          description: Gets or sets Activity Name
+          type: string
+        activityDescription:
+          description: Gets or sets Activity Description
+          type: string
+        registrationInstructions:
+          description: Gets or sets Registration Instructions
+          type: string
+        keyword:
+          description: Gets or sets Keyword
+          type: string
+    DomainDetailsDTO:
+      description: Domain Details DTO
+      type: object
+      properties:
+        id:
+          format: int32
+          description: Gets or sets Id
+          type: integer
+        name:
+          description: Gets or sets Name
+          type: string
+        code:
+          description: Gets or sets Code
+          type: string
+    ResourcesDTO:
+      description: Activity resources DTO
+      type: object
+      properties:
+        locations:
+          description: Gets or sets Locations
+          type: array
+          items:
+            $ref: '#/components/schemas/LocationDTO'
+        equipments:
+          description: Gets or sets Equipments
+          type: array
+          items:
+            $ref: '#/components/schemas/EquipmentDTO'
+        instructors:
+          description: Gets or sets Instructors
+          type: array
+          items:
+            $ref: '#/components/schemas/BasicUserDetailsDTO'
+    TopicsDTO:
+      description: Topic details DTO
+      type: object
+      properties:
+        id:
+          format: int32
+          description: Gets or sets Id
+          type: integer
+        name:
+          description: Gets or sets Name
+          type: string
+    ActivityLinksDTO:
+      description: Activity Links DTO
+      type: object
+      properties:
+        fulFilledBy:
+          description: Gets all activities which are fulfills current activity
+          type: array
+          items:
+            format: int32
+            type: integer
+        fulFills:
+          description: Gets all activities which are fulfilled by current activity
+          type: array
+          items:
+            format: int32
+            type: integer
+        offeredBy:
+          description: 'Gets all Offered By activities (Eg: ILT Course)'
+          type: array
+          items:
+            format: int32
+            type: integer
+        offerings:
+          description: 'Gets all Offerings of current activity (Eg: ILT Classes)'
+          type: array
+          items:
+            format: int32
+            type: integer
+        subscribedByActivities:
+          description: Gets all activities under current activity subscribed
+          type: array
+          items:
+            format: int32
+            type: integer
+        associatedActivities:
+          description: Gets all associated activities under current bundle activity
+          type: array
+          items:
+            format: int32
+            type: integer
+    ActivityChildrenDTO:
+      description: Activity Children DTO
+      type: object
+      properties:
+        id:
+          format: int32
+          description: Gets Activity Id
+          type: integer
+        children:
+          description: Gets activity childs
+          type: array
+          items:
+            $ref: '#/components/schemas/ActivityChildrenDTO'
+    KeyValuePair-Int32-String:
+      type: object
+      properties:
+        key:
+          format: int32
+          type: integer
+          readOnly: true
+        value:
+          type: string
+          readOnly: true
+    LocationDTO:
+      type: object
+      properties:
+        id:
+          format: int32
+          type: integer
+        name:
+          type: string
+        facilityAddress1:
+          type: string
+        facilityAddress2:
+          type: string
+        url:
+          type: string
+        facilityName:
+          type: string
+        facilityCity:
+          type: string
+        facilityState:
+          type: string
+        facilityCountry:
+          type: string
+        zipCode:
+          type: string
+    EquipmentDTO:
+      description: Equipments DTO
+      type: object
+      properties:
+        id:
+          format: int32
+          description: Gets or sets Id
+          type: integer
+        name:
+          description: Gets or sets Name
+          type: string
+    BasicUserDetailsDTO:
+      description: ''
+      type: object
+      properties:
+        id:
+          description: ''
+          type: string
+    BadRequestResult:
+      type: object
+      properties:
+        request:
+          type: object
+          readOnly: true
+    NotFoundResult:
+      type: object
+      properties:
+        request:
+          type: object
+          readOnly: true
+    ActivityDetailsItemDTO:
+      description: Activity Details item.
+      type: object
+      properties:
+        isExtendedEnterpriseEnabled:
+          description: Gets or Sets is Extended Enterprise Enabled flag
+          type: boolean
+        extendedEnterpriseDuration:
+          format: int32
+          description: Gets or Sets is Extended Enterprise Duration in days
+          type: integer
+        activityId:
+          description: Gets or sets the activityID
+          type: string
+        activityType:
+          description: Gets or sets the activity type
+          type: string
+        activityName:
+          description: Gets or sets the activity name
+          type: string
+        activityCode:
+          description: Gets or sets the activity code
+          type: string
+        assignmentStatus:
+          description: Gets or sets the activity assignment status
+          type: string
+        completionProgress:
+          format: int32
+          description: Gets or sets the activity completion progress
+          type: integer
+        expirationDetails:
+          description: Gets or sets the activity expiration details
+          type: string
+        activityDescription:
+          description: Gets or sets the activity description
+          type: string
+        startDate:
+          format: date-time
+          description: Gets or sets the activity start date
+          type: string
+        endDate:
+          format: date-time
+          description: Gets or sets the activity end date
+          type: string
+        registrationDeadline:
+          format: date-time
+          description: Gets or sets the activity registration deadline
+          type: string
+        cancellationDeadline:
+          format: date-time
+          description: Gets or sets the activity cancellation deadline
+          type: string
+        estimatedCost:
+          format: double
+          description: Gets or sets the activity estimated cost
+          type: number
+        estimatedDuration:
+          format: int32
+          description: Gets or sets the activity estimated duration
+          type: integer
+        activityStatus:
+          description: Gets or sets the activity status
+          type: string
+        locations:
+          description: Gets or sets the activity locations
+          type: array
+          items:
+            type: string
+        instructors:
+          description: Gets or sets the activity instructors
+          type: array
+          items:
+            type: string
+        launchUrl:
+          description: Gets or sets the activity launchUrl
+          type: string
+        trainingOrganization:
+          description: Gets or sets the activity training organization
+          type: string
+        deliveryMethod:
+          description: Gets or sets the activity delivery method
+          type: string
+        contact:
+          description: Gets or sets the activity contact
+          type: string
+        owner:
+          description: Gets or sets the activity owner
+          type: string
+        language:
+          description: Gets or sets the activity language
+          type: string
+        contentType:
+          description: Gets or sets the activity content type
+          type: string
+        mediaType:
+          description: Gets or sets the activity media type
+          type: string
+        prerequisite-Activities:
+          description: Gets or sets the prerequisite activities
+          type: array
+          items:
+            $ref: '#/components/schemas/BasicActivityDetails'
+        userNotes:
+          description: Gets or sets the activity user notes
+          type: string
+        certificationDetails:
+          description: Gets or sets the activity certification details
+          type: string
+        creditHours:
+          format: double
+          description: Gets or sets the activity credit hours
+          type: number
+        libraryDetails:
+          description: Gets or sets the activity library details
+          type: array
+          items:
+            type: string
+        instructorNotes:
+          description: Gets or sets the activity instructor notes
+          type: string
+        skillsAndCompetencies:
+          description: Gets or sets the activity skills and competencies
+          type: array
+          items:
+            type: string
+        fulfillmentActivities:
+          description: Gets or sets the fulfillment activities
+          type: array
+          items:
+            $ref: '#/components/schemas/BasicActivityDetails'
+        pointsRange:
+          $ref: '#/components/schemas/GamificationPointsRangeDTO'
+          description: Gets or sets the Gamification Points Range
+        progressDetails:
+          $ref: '#/components/schemas/ActivityProgressDetailsDTO'
+          description: Gets activity progress details
+        activityOptionalFields:
+          $ref: '#/components/schemas/ActivityOptionalDetailssDTO'
+          description: Gets or sets the activity optional fields
+        isRegistered:
+          description: Gets or sets the registered status
+          type: boolean
+        activityImageUrl:
+          description: Gets or sets the image path
+          type: string
+        cbtPath:
+          description: CBT Path of Activity
+          type: string
+        cbtLaunchMethodId:
+          description: CBT Launch Method Id
+          type: string
+        attendStatus:
+          description: Gets or sets the activity attend status
+          type: string
+        mimeType:
+          description: Gets or sets the mime type
+          type: string
+        modalities:
+          description: Gets or sets the modalities
+          type: array
+          items:
+            type: string
+        noRegistrationRequired:
+          description: Gets or Sets NoRegistrationRequired
+          type: boolean
+    BasicActivityDetails:
+      description: Basic Activity Details item.
+      type: object
+      properties:
+        activityId:
+          description: Gets or sets the activity ID
+          type: string
+        activityName:
+          description: Gets or sets the activity name
+          type: string
+        activityType:
+          description: Gets or sets the activity type
+          type: string
+    GamificationPointsRangeDTO:
+      description: Gamification Points Range DTO
+      type: object
+      properties:
+        min:
+          format: int32
+          description: Gets or sets gamification min range value
+          type: integer
+        max:
+          format: int32
+          description: Gets or sets gamification min range value
+          type: integer
+    ActivityProgressDetailsDTO:
+      type: object
+      properties:
+        elapsedSeconds:
+          format: int64
+          description: Time spent on the activity in fractional seconds
+          type: integer
+        percentageCompletion:
+          format: int32
+          description: Percentage completion of that activity by user
+          type: integer
+        contentTypeName:
+          description: The descriptive name for this Content Type.
+          type: string
+        firstLaunchDate:
+          format: date-time
+          description: First launch Date of course by user
+          type: string
+        score:
+          format: double
+          description: Score attaind by user for course
+          type: number
+        registrationStatus:
+          format: int32
+          description: "Registration status of activity,Value vs Meaning is: 0=Registered, 1=Cancelled, 2=On Waiting List, 3=Holding for Approval, 4=Completed, 5=No-show\r\n6=Reserved seat on Waiting List, 7=Expired Waiting List seat, 8=Registration Transfered, 9=Waived, 10=In Progress"
+          type: integer
+        triesCount:
+          format: int32
+          description: No. of tries utilized to pass the course. Only completed ones are considered and not the in progress ones.
+          type: integer
+        attemptsCount:
+          format: int32
+          description: No. of attempts utilized to pass the course. Only completed ones are considered and not the in progress ones.
+          type: integer
+        attemptId:
+          format: int64
+          type: integer
+        currentAttemptId:
+          format: int64
+          description: Latest attemptPK that is being used, irrespective of tries and attempts
+          type: integer
+        scormDetails:
+          description: For scorm courses, Indicates scorm progress details.
+          type: array
+          items:
+            $ref: '#/components/schemas/ScormItemProgressDetailsDTO'
+        lastViewedScormPackageId:
+          type: string
+        totalQuestionsCount:
+          format: int32
+          description: Total number of questions in a quick assessment
+          type: integer
+        answeredQuestionsCount:
+          format: int32
+          description: Total number of answered questions in a quick assessment
+          type: integer
+        completionDate:
+          format: date-time
+          description: Date when activity was completed
+          type: string
+        status:
+          description: Status of activity
+          type: string
+    ActivityOptionalDetailssDTO:
+      description: Activity Optional Fields DTO.
+      type: object
+      properties:
+        optionalText1:
+          description: Gets or sets the optional text1
+          type: string
+        optionalText2:
+          description: Gets or sets the optional text2
+          type: string
+        optionalText3:
+          description: Gets or sets the optional text3
+          type: string
+        optionalText4:
+          description: Gets or sets the optional text4
+          type: string
+        optionalMemo1:
+          description: Gets or sets the optional memo1
+          type: string
+        optionalDate1:
+          description: Gets or sets the optional date1
+          type: string
+        optionalDate2:
+          description: Gets or sets the optional date2
+          type: string
+        optionalYesNo:
+          description: Gets or sets the optional yesno
+          type: string
+        optionalMoney:
+          format: float
+          description: Gets or sets the optional money
+          type: number
+        optionalInteger:
+          format: int32
+          description: Gets or sets the optional integer
+          type: integer
+        optionalFloat:
+          format: float
+          description: Gets or sets the optional float
+          type: number
+        optionalCurrencyId:
+          format: int32
+          description: Gets or sets the optional currency id
+          type: integer
+        optionalCurrency:
+          description: Gets or sets the optional currency
+          type: string
+    ScormItemProgressDetailsDTO:
+      type: object
+      properties:
+        studyPlanItemId:
+          description: UniqueId of study plan
+          type: string
+        treeLevel:
+          format: int32
+          description: Level in the tree 1 at root level, 2 one below root,etc.
+          type: integer
+        completionDate:
+          format: date-time
+          description: Latest attempt completion date of scorm
+          type: string
+        title:
+          description: Title of scorm
+          type: string
+        status:
+          description: Status of scorm
+          type: string
+        topicTime:
+          format: double
+          description: Time spent on the scorm in fractional seconds
+          type: number
+        percentage:
+          format: int32
+          description: Percentage of scorm completed
+          type: integer
+        objectives:
+          format: int32
+          description: Number of objectives
+          type: integer
+        interactions:
+          format: int32
+          description: Number of interactions associated with this scorm for this user
+          type: integer
+        passFail:
+          description: Represents passed or failed
+          type: string
+    ChildActivityItemDTO:
+      description: Child Activity item.
+      type: object
+      properties:
+        childActivities:
+          description: Gets or sets a list of child activities
+          type: array
+          items:
+            $ref: '#/components/schemas/ChildActivityDetails'
+    ChildActivityDetails:
+      description: Child Activity Details item.
+      type: object
+      properties:
+        activityId:
+          description: Gets or sets the activity ID
+          type: string
+        activityName:
+          description: Gets or sets the activity name
+          type: string
+        activityDescription:
+          description: Gets or sets the activity description
+          type: string
+        activityType:
+          description: Gets or sets the activity type
+          type: string
+        isRegistered:
+          description: Indicate if Registered to Activity
+          type: boolean
+        status:
+          description: Status of Activity
+          type: string
+        isCompleted:
+          description: Indicate if activity is Completed
+          type: boolean
+        imageURL:
+          description: Image URL of Activity
+          type: string
+        cbtPath:
+          description: CBPT Path of Activity
+          type: string
+        launchUrl:
+          description: Gets or sets the launchUrl
+          type: string
+        contentType:
+          description: Gets or sets the activity content type
+          type: string
+    PaginatedData-AudienceByActivityIdResponseDto:
+      description: Pagination class details and data
+      type: object
+      properties:
+        pagination:
+          $ref: '#/components/schemas/PaginationDetails'
+          description: Details of Pagination
+        data:
+          description: Data. List of items
+          type: array
+          items:
+            $ref: '#/components/schemas/AudienceByActivityIdResponseDto'
+    PaginationDetails:
+      description: Pagination details
+      type: object
+      properties:
+        offset:
+          format: int32
+          description: The starting position of the backend record from which the results would be shown
+          type: integer
+        limit:
+          format: int32
+          description: The max number of records that should be fetched by the call
+          type: integer
+        total:
+          format: int32
+          description: The total number of records returned by the call
+          type: integer
+    AudienceByActivityIdResponseDto:
+      description: Response object for getting Audiences by activity id
+      type: object
+      properties:
+        audienceId:
+          format: int32
+          description: Gets or sets the AudiencePK
+          type: integer
+        name:
+          description: Gets or sets the name
+          type: string
+        description:
+          description: Gets or sets the description
+          type: string
+        code:
+          description: Gets or sets the code
+          type: string
+        primaryDomain:
+          description: Gets or sets the primary domain
+          type: string
+        isInherited:
+          description: Gets or sets the Is Inherited
+          type: string
+    ActivityAdminListFilterRequestDTO:
+      description: Activity Admin List Filter Request DTO
+      type: object
+      properties:
+        inActive:
+          format: int32
+          description: 'Filter Activities by Status: All = 0, Inactive = 1, Active = 2'
+          type: integer
+        activityTypeId:
+          format: int32
+          description: Activity Type Id
+          type: integer
+        activityId:
+          format: int32
+          description: Filter by specific Activity Id
+          type: integer
+        activityName:
+          description: Filter by specific Activity Name
+          type: string
+        activityCode:
+          description: Filter by specific Activity Code
+          type: string
+        activityDescription:
+          description: Filter by specific Activity Description
+          type: string
+        mediaTypeId:
+          format: int32
+          description: Filter by specific Media Type
+          type: integer
+        deliveryMethodId:
+          format: int32
+          description: Filter by specific Delivery Method
+          type: integer
+        cbtLaunchMethodId:
+          format: int32
+          description: Filter by specific CBT Launch Method
+          type: integer
+        langCodeId:
+          format: int32
+          description: Filter by specific Language
+          type: integer
+        durationMin:
+          format: int32
+          description: Filter by Minimum Duration
+          type: integer
+        durationMax:
+          format: int32
+          description: Filter by Maximum Duration
+          type: integer
+        status:
+          format: int32
+          description: Filter by specific Activity Status
+          type: integer
+        startDate:
+          format: date-time
+          description: Filter by Activity Start date
+          type: string
+        endDate:
+          format: date-time
+          description: Filter by Activity End date
+          type: string
+        owner:
+          description: Filter by specific Owner
+          type: string
+        vendor:
+          description: Filter by specific Vendor
+          type: string
+        primaryDomain:
+          description: Filter by specific Primary Domain
+          type: string
+        region:
+          description: Filter by specific Region
+          type: string
+        facility:
+          description: Filter by specific Facility
+          type: string
+        includeCertificationsOnly:
+          description: Include Certification only
+          type: boolean
+        includeStagingActivitiesOnly:
+          description: Include Staging Activities only
+          type: boolean
+    PaginatedData-ActivityListViewItemDTO:
+      description: Pagination class details and data
+      type: object
+      properties:
+        pagination:
+          $ref: '#/components/schemas/PaginationDetails'
+          description: Details of Pagination
+        data:
+          description: Data. List of items
+          type: array
+          items:
+            $ref: '#/components/schemas/ActivityListViewItemDTO'
+    ActivityListViewItemDTO:
+      type: object
+      properties:
+        activityId:
+          format: int32
+          description: Id of Activity
+          type: integer
+        parentActivityId:
+          format: int32
+          description: Parent Id of Activity
+          type: integer
+        name:
+          description: Name of Activity
+          type: string
+        description:
+          description: Description of Activity
+          type: string
+        code:
+          description: Code of Activity
+          type: string
+        activityType:
+          description: Type of Activity
+          type: string
+        primaryDomain:
+          description: Primary domain Activity is associated to
+          type: string
+        startDate:
+          format: date-time
+          description: Scheduled Start date of Activity
+          type: string
+        endDate:
+          format: date-time
+          description: Scheduled End date of Activity
+          type: string
+        publishedDate:
+          format: date-time
+          description: Published date of Activity
+          type: string
+        updatedDate:
+          format: date-time
+          description: Last Updated date of Activity
+          type: string
+        active:
+          description: Activity active status
+          type: boolean
+    PersonDTO:
+      title: person
+      description: Object for Person
+      required:
+        - firstName
+        - lastName
+        - userLogin
+      type: object
+      properties:
+        userId:
+          description: User unique identifier value for the import. Employee number/User ID not internal identifier. When left blank/null, this field will be auto generated
+          type: string
+        personId:
+          format: int32
+          description: Unique identifier for Person
+          type: integer
+        active:
+          description: User account active or inactive. Possible values are 0 and 1
+          type: boolean
+        firstName:
+          description: First Name
+          type: string
+        middleName:
+          description: Middle Name
+          type: string
+        lastName:
+          description: Last Name
+          type: string
+        fullName:
+          description: FullName
+          type: string
+        firstNameNative:
+          description: Native first name of the person
+          type: string
+        lastNameNative:
+          description: Native last name of the person
+          type: string
+        friendlyName:
+          description: Friendly name of the person
+          type: string
+        timezoneId:
+          format: int32
+          description: The timezone of the employee. Maps to the "Attr4Val" field of CodeAttribute category code 3007. Defaults to (UTC-05:00:00) Eastern Standard Time [America/New_York] (50)
+          type: integer
+        languageId:
+          format: int32
+          description: The employee's culture. Maps to "Attr4Val" field of Category code CodeAttribute.Catcd=1201. This  also determines the user's default language, date format, and time format. Defaults to English (United States) (1) (11)
+          type: integer
+        currencyId:
+          format: int32
+          description: The employee's compensation currency. Maps to "Attr3Val" of Code Attribute Category Code 1098. Defaults to US Dollars (11)
+          type: integer
+        ethnicityCode:
+          description: Ethnicity of the user. Maps to the "Item Code" field for the category code 23115
+          type: string
+        genderCode:
+          description: The gender of the employee. Maps to the "Item Code" field for the category code 2518
+          type: string
+        startDate:
+          format: date-time
+          description: Start date of employee
+          type: string
+        endDate:
+          format: date-time
+          description: Termination date
+          type: string
+        lastReviewDate:
+          format: date-time
+          description: 'The date/time of the user''s last Learn skills review, in either of the  following formats: mm/dd/yyyy hh:mm:ss,dd/mm/yyyy hh:mm:ss'
+          type: string
+        companyCode:
+          description: Company Code (not an organization association)
+          type: string
+        companyName:
+          description: Company name (not an organization association)
+          type: string
+        statusCode:
+          format: int32
+          description: User status (Active, Inactive, Vacation, etc.). Maps to "Item Code" field of Category code 48002
+          type: integer
+        typeCode:
+          format: int32
+          description: User code metadata (Full-time, part-time, contract, etc.). Maps to "Item Code" field of Category code Code.Catcd=4030
+          type: integer
+        birthDate:
+          format: date-time
+          description: Birth Date
+          type: string
+        prefixCode:
+          description: Name prefix (Code). Maps to the "Item Code" field for the category code 4002
+          type: string
+        prefixText:
+          description: Name Prefix Text.  Use this field to specify the prefix when 99 (other) is set as the prefix code.
+          type: string
+        suffixCode:
+          description: Name suffix (Code). Maps to the "Item Code" field for the category code 4011
+          type: string
+        suffixText:
+          description: Name Suffix Text.  Use this field to specify the suffix when 99 (other) is set as the suffix code.
+          type: string
+        noteText:
+          description: Note Text
+          type: string
+        imagePath:
+          description: ImagePath of the person
+          type: string
+        govtId:
+          description: User's government ID
+          type: string
+        personDescription:
+          description: Person Description
+          type: string
+        url:
+          description: The Learn URL of the user
+          type: string
+        publishCalendar:
+          description: Auto publish events into calendar.  0 - To add to calendar 1 - Do not add to calendar
+          type: boolean
+        internalInd:
+          description: Indicates whether the user is an internal employee. 1 - Internal employee 0 - External (partner, contractor or customer)
+          type: boolean
+        deleted:
+          description: Indicates whether the user should be marked as Deleted
+          type: boolean
+        welcomeEmailEnabled:
+          description: Indicates if user should receive Welcome email after the account is created
+          type: boolean
+        homeAddress:
+          $ref: '#/components/schemas/PersonCommunicationDTO'
+          description: Home Address details
+        businessAddress:
+          $ref: '#/components/schemas/PersonCommunicationDTO'
+          description: Business Address details
+        personDomain:
+          description: Person to Domain(s) Relationship
+          type: array
+          items:
+            $ref: '#/components/schemas/PersonDomainDTO'
+        personOrganization:
+          description: Person to Organization(s) relationship
+          type: array
+          items:
+            $ref: '#/components/schemas/PersonOrganizationDTO'
+        personJob:
+          description: Person Job Object
+          type: array
+          items:
+            $ref: '#/components/schemas/PersonJobDTO'
+        personRelation:
+          $ref: '#/components/schemas/PersonRelationDTO'
+          description: Person Relation Object
+        personELM:
+          $ref: '#/components/schemas/PersonELMDTO'
+          description: Person ELM Object
+        personOptional:
+          $ref: '#/components/schemas/PersonOptional1DTO'
+          description: Person Optional Object
+        personMobileUser:
+          $ref: '#/components/schemas/PersonMobileUserDTO'
+          description: Person Mobile User Object
+        userLogin:
+          $ref: '#/components/schemas/UserLoginDTO'
+          description: User Login Object
+        userLoginProfile:
+          description: User Login Profile Object
+          type: array
+          items:
+            $ref: '#/components/schemas/UserLoginProfileDTO'
+        personTM:
+          $ref: '#/components/schemas/PersonTMDTO'
+          description: Person TM
+    PersonCommunicationDTO:
+      title: personCommunication
+      description: Object to specify Person Communication details
+      type: object
+      properties:
+        email1:
+          description: Email 1
+          type: string
+        email2:
+          description: Email 2
+          type: string
+        address1:
+          description: Address 1
+          type: string
+        address2:
+          description: Address 2
+          type: string
+        address3:
+          description: Address 3
+          type: string
+        city:
+          description: City
+          type: string
+        stateName:
+          description: State
+          type: string
+        county:
+          description: County
+          type: string
+        country:
+          description: Country
+          type: string
+        zip:
+          description: Zip
+          type: string
+        phone:
+          description: Phone
+          type: string
+        phoneExt:
+          description: Phone Extension
+          type: string
+        pagerNumber:
+          description: Pager Number
+          type: string
+        fax1:
+          description: Fax 1
+          type: string
+        fax2:
+          description: Fax 2
+          type: string
+        isPrimary:
+          description: Is Primary. This field will default to True
+          type: boolean
+        mobile:
+          description: Mobile
+          type: string
+        emailFormat:
+          description: Email format. 1 - HTML 0 - Plain text
+          type: boolean
+        emergency:
+          description: Emergency
+          type: string
+        twitterURL:
+          description: Twitter URL
+          type: string
+        linkedInURL:
+          description: LinkedIn URL
+          type: string
+        facebookURL:
+          description: Facebook URL
+          type: string
+        googlePlusURL:
+          description: Google Plus URL
+          type: string
+    PersonDomainDTO:
+      title: personDomain
+      description: Object to specify Person to Domain Relationship
+      type: object
+      properties:
+        domainId:
+          format: int32
+          description: Domain Id. Defaults to Global (-1)
+          type: integer
+        userSecurityRoleId:
+          format: int32
+          description: ELM Security role of the user. If no value passed then the API will update it to the default role set for the domain passed. If a role is passed which is not present in the domain then API will throw an error.
+          type: integer
+        isPrimary:
+          description: Indicate if this Domain is the Primary Domain
+          type: boolean
+        deleted:
+          format: int32
+          description: Inidicates if record is deleted. This field is readonly
+          type: integer
+        code:
+          description: Code of Domain
+          type: string
+    PersonOrganizationDTO:
+      title: personOrganization
+      description: Object for Person to Organization relationship
+      type: object
+      properties:
+        organizationId:
+          format: int32
+          description: Organization Id
+          type: integer
+        isPrimary:
+          description: Is Primary
+          type: boolean
+        joiningDate:
+          format: date-time
+          description: Joining Date
+          type: string
+        code:
+          description: Code of Organization
+          type: string
+        deleted:
+          format: int32
+          description: Inidicates if record is deleted. This field is readonly
+          type: integer
+        mainOrganization:
+          description: Indicator for main organization
+          type: boolean
+    PersonJobDTO:
+      title: personJob
+      description: Object for Person to Job relationship
+      type: object
+      properties:
+        jobTemplateId:
+          format: int32
+          description: Job Template Id
+          type: integer
+        isPrimary:
+          description: Is Primary
+          type: boolean
+        joiningDate:
+          format: date-time
+          description: Joining Date
+          type: string
+        code:
+          description: Code of Job Template
+          type: string
+        deleted:
+          format: int32
+          description: Inidicates if record is deleted. This field is readonly
+          type: integer
+    PersonRelationDTO:
+      title: personRelation
+      description: Object for Person to Person relationship
+      type: object
+      properties:
+        manager1Id:
+          description: Manager1 User Id
+          type: string
+        jobTitle:
+          description: Job Title
+          type: string
+        locationName:
+          description: Location Name
+          type: string
+        locationCode:
+          description: Location Code
+          type: string
+    PersonELMDTO:
+      title: personELM
+      description: Object to specify Person to ELM relationship
+      type: object
+      properties:
+        approverId:
+          description: The User ID of the user's Learn schedule approver
+          type: string
+        defApproverId:
+          description: User ID of the user's default training approver
+          type: string
+        viewAllEmpsInd:
+          description: Indicates whether the user can see all users in his or her primary domain
+          type: boolean
+        reqConfirm:
+          format: int32
+          description: Indicates whether instructor scheduling requires approval. 1 - Requires Approval 0 or blank - Does not require approval
+          type: integer
+        instructorActive:
+          format: int32
+          description: Indicates whether the user is an instructor. 1 - Instructor 0 or blank - Not an instructor
+          type: integer
+        level1ApproverId:
+          description: Level 1 Approver User ID
+          type: string
+        level2ApproverId:
+          description: Level 2 Approver User ID
+          type: string
+        level3ApproverId:
+          description: Level 3 Approver User ID
+          type: string
+        level4ApproverId:
+          description: Level 4 Approver User ID
+          type: string
+    PersonOptional1DTO:
+      title: personOptional
+      description: Object for Person Optional Information
+      type: object
+      properties:
+        text1:
+          description: An optional text field
+          type: string
+        text2:
+          description: An optional text field
+          type: string
+        text3:
+          description: TeAn optional text fieldxt3
+          type: string
+        text4:
+          description: An optional text field
+          type: string
+        text5:
+          description: An optional text field
+          type: string
+        text6:
+          description: An optional text field
+          type: string
+        text7:
+          description: An optional text field
+          type: string
+        text8:
+          description: An optional text field
+          type: string
+        text9:
+          description: An optional text field
+          type: string
+        text10:
+          description: An optional text field
+          type: string
+        text11:
+          description: An optional text field
+          type: string
+        text12:
+          description: An optional text field
+          type: string
+        text13:
+          description: An optional text field
+          type: string
+        text14:
+          description: An optional text field
+          type: string
+        text15:
+          description: An optional text field
+          type: string
+        text16:
+          description: An optional text field
+          type: string
+        text17:
+          description: An optional text field
+          type: string
+        text18:
+          description: An optional text field
+          type: string
+        text19:
+          description: An optional text field
+          type: string
+        text20:
+          description: An optional text field
+          type: string
+        date1:
+          format: date-time
+          description: An optional date field
+          type: string
+        date2:
+          format: date-time
+          description: An optional date field
+          type: string
+        date3:
+          format: date-time
+          description: An optional date field
+          type: string
+        date4:
+          format: date-time
+          description: An optional date field
+          type: string
+        date5:
+          format: date-time
+          description: An optional date field
+          type: string
+        money1:
+          format: double
+          description: An optional money field
+          type: number
+        money2:
+          format: double
+          description: An optional money field
+          type: number
+        money3:
+          format: double
+          description: An optional money field
+          type: number
+        money4:
+          format: double
+          description: An optional money field
+          type: number
+        money5:
+          format: double
+          description: An optional money field
+          type: number
+        integer1:
+          format: int32
+          description: An optional integer field
+          type: integer
+        integer2:
+          format: int32
+          description: An optional integer field
+          type: integer
+        integer3:
+          format: int32
+          description: An optional integer field
+          type: integer
+        integer4:
+          format: int32
+          description: An optional integer field
+          type: integer
+        integer5:
+          format: int32
+          description: An optional integer field
+          type: integer
+        float1:
+          format: double
+          description: An optional float field
+          type: number
+        float2:
+          format: double
+          description: An optional float field
+          type: number
+        float3:
+          format: double
+          description: An optional float field
+          type: number
+        float4:
+          format: double
+          description: An optional float field
+          type: number
+        float5:
+          format: double
+          description: An optional float field
+          type: number
+        ind1:
+          description: An optional indicator (flag) field
+          type: boolean
+        ind2:
+          description: An optional indicator (flag) field
+          type: boolean
+        ind3:
+          description: An optional indicator (flag) field
+          type: boolean
+        ind4:
+          description: An optional indicator (flag) field
+          type: boolean
+        ind5:
+          description: An optional indicator (flag) field
+          type: boolean
+        memo1:
+          description: An optional memo field
+          type: string
+        memo2:
+          description: An optional memo field
+          type: string
+        memo3:
+          description: An optional memo field
+          type: string
+        memo4:
+          description: An optional memo field
+          type: string
+        memo5:
+          description: An optional memo field
+          type: string
+        decimal1:
+          format: double
+          description: An optional decimal field
+          type: number
+        decimal2:
+          format: double
+          description: An optional decimal field
+          type: number
+        decimal3:
+          format: double
+          description: An optional decimal field
+          type: number
+        decimal4:
+          format: double
+          description: An optional decimal field
+          type: number
+        decimal5:
+          format: double
+          description: An optional decimal field
+          type: number
+    PersonMobileUserDTO:
+      title: personMobileUser
+      description: Object for Person Mobile detail
+      type: object
+      properties:
+        isMobileEnabled:
+          description: Is Mobile Enabled
+          type: boolean
+        mobileUsername:
+          description: Mobile Username
+          type: string
+        userPassword:
+          description: Mobile Password
+          type: string
+    UserLoginDTO:
+      title: userLogin
+      description: Object for Person to User Login relationship
+      required:
+        - username
+        - userPassword
+      type: object
+      properties:
+        username:
+          description: Username
+          type: string
+        userPassword:
+          description: Password
+          type: string
+        userEnabled:
+          description: User Enabled
+          type: boolean
+        currentDomainId:
+          format: int32
+          description: Current Domain Id
+          type: integer
+        userCulture:
+          description: User Culture
+          type: string
+        userTypeId:
+          format: int32
+          description: The resource type of the employee. Maps to "Item Code" field of Category code Code.Catcd=1073.
+          type: integer
+        isLocked:
+          description: Is Locked
+          type: boolean
+        mustChangePassword:
+          description: Flag to indicate if the password is required to be reset on user login
+          type: boolean
+        passwordExpiryDate:
+          format: date-time
+          description: The expiration date/time of the user's account password.
+          type: string
+    UserLoginProfileDTO:
+      title: userLoginProfile
+      description: Object for Person to User Login Profile relationship
+      type: object
+      properties:
+        loginName:
+          description: The user's NT Domain login name
+          type: string
+        profileUrl:
+          description: Profile Url
+          type: string
+    PersonTMDTO:
+      title: personTM
+      description: Person TM object
+      type: object
+      properties:
+        maritalCode:
+          description: Marital Code
+          type: string
+        veteranCode:
+          description: Veteran Code
+          type: string
+    CreateUserAdvancedResponseJSON:
+      title: CreateUpdateUserResponse
+      type: object
+      properties:
+        validationMessages:
+          description: Response Validation Messages
+          type: array
+          items:
+            $ref: '#/components/schemas/ValidationMessageJSON'
+        response:
+          description: Response value
+          type: string
+        userId:
+          description: User Id of newly created User
+          type: string
+        status:
+          format: int32
+          description: Response status
+          type: integer
+    ValidationMessageJSON:
+      type: object
+      properties:
+        fieldName:
+          type: string
+        errorCode:
+          type: string
+        errorMessage:
+          type: string
+    PersonAdvancedDTO:
+      title: person
+      description: Object for Person
+      required:
+        - firstName
+        - lastName
+        - userLogin
+      type: object
+      properties:
+        userId:
+          description: User unique identifier value for the import. Employee number/User ID not internal identifier. When left blank/null, this field will be auto generated
+          type: string
+        active:
+          description: User account active or inactive. Possible values are 0 and 1
+          type: boolean
+        firstName:
+          description: First Name
+          type: string
+        middleName:
+          description: Middle Name
+          type: string
+        lastName:
+          description: Last Name
+          type: string
+        fullName:
+          description: FullName
+          type: string
+        firstNameNative:
+          description: Native first name of the person
+          type: string
+        lastNameNative:
+          description: Native last name of the person
+          type: string
+        friendlyName:
+          description: Friendly name of the person
+          type: string
+        timezoneId:
+          format: int32
+          description: The timezone of the employee. Maps to the "Attr4Val" field of CodeAttribute category code 3007. Defaults to (UTC-05:00:00) Eastern Standard Time [America/New_York] (50)
+          type: integer
+        languageId:
+          format: int32
+          description: The employee's culture. Maps to "Attr4Val" field of Category code CodeAttribute.Catcd=1201. This  also determines the user's default language, date format, and time format. Defaults to English (United States) (1) (11)
+          type: integer
+        currencyId:
+          format: int32
+          description: The employee's compensation currency. Maps to "Attr3Val" of Code Attribute Category Code 1098. Defaults to US Dollars (11)
+          type: integer
+        ethnicityCode:
+          description: Ethnicity of the user. Maps to the "Item Code" field for the category code 23115
+          type: string
+        genderCode:
+          description: The gender of the employee. Maps to the "Item Code" field for the category code 2518
+          type: string
+        startDate:
+          format: date-time
+          description: Start date of employee
+          type: string
+        endDate:
+          format: date-time
+          description: Termination date
+          type: string
+        lastReviewDate:
+          format: date-time
+          description: 'The date/time of the user''s last Learn skills review, in either of the  following formats: mm/dd/yyyy hh:mm:ss,dd/mm/yyyy hh:mm:ss'
+          type: string
+        companyCode:
+          description: Company Code (not an organization association)
+          type: string
+        companyName:
+          description: Company name (not an organization association)
+          type: string
+        statusCode:
+          format: int32
+          description: User status (Active, Inactive, Vacation, etc.). Maps to "Item Code" field of Category code 48002
+          type: integer
+        typeCode:
+          format: int32
+          description: User code metadata (Full-time, part-time, contract, etc.). Maps to "Item Code" field of Category code Code.Catcd=4030
+          type: integer
+        birthDate:
+          format: date-time
+          description: Birth Date
+          type: string
+        prefixCode:
+          description: Name prefix (Code). Maps to the "Item Code" field for the category code 4002
+          type: string
+        prefixText:
+          description: Name Prefix Text.  Use this field to specify the prefix when 99 (other) is set as the prefix code.
+          type: string
+        suffixCode:
+          description: Name suffix (Code). Maps to the "Item Code" field for the category code 4011
+          type: string
+        suffixText:
+          description: Name Suffix Text.  Use this field to specify the suffix when 99 (other) is set as the suffix code.
+          type: string
+        noteText:
+          description: Note Text
+          type: string
+        imagePath:
+          description: ImagePath of the person
+          type: string
+        govtId:
+          description: User's government ID
+          type: string
+        personDescription:
+          description: Person Description
+          type: string
+        url:
+          description: The Learn URL of the user
+          type: string
+        publishCalendar:
+          description: Auto publish events into calendar.  0 - To add to calendar 1 - Do not add to calendar
+          type: boolean
+        internalInd:
+          description: Indicates whether the user is an internal employee. 1 - Internal employee 0 - External (partner, contractor or customer)
+          type: boolean
+        deleted:
+          description: Indicates whether the user should be marked as Deleted
+          type: boolean
+        welcomeEmailEnabled:
+          description: Indicates if user should receive Welcome email after the account is created
+          type: boolean
+        homeAddress:
+          $ref: '#/components/schemas/PersonCommunicationDTO'
+          description: Home Address details
+        businessAddress:
+          $ref: '#/components/schemas/PersonCommunicationDTO'
+          description: Business Address details
+        personDomain:
+          description: Person to Domain(s) Relationship
+          type: array
+          items:
+            $ref: '#/components/schemas/PersonDomainDTO'
+        personOrganization:
+          description: Person to Organization(s) relationship
+          type: array
+          items:
+            $ref: '#/components/schemas/PersonOrganizationDTO'
+        personJob:
+          description: Person Job Object
+          type: array
+          items:
+            $ref: '#/components/schemas/PersonJobDTO'
+        personRelation:
+          $ref: '#/components/schemas/PersonRelationDTO'
+          description: Person Relation Object
+        personELM:
+          $ref: '#/components/schemas/PersonELMDTO'
+          description: Person ELM Object
+        personOptional:
+          $ref: '#/components/schemas/PersonOptional1DTO'
+          description: Person Optional Object
+        personMobileUser:
+          $ref: '#/components/schemas/PersonMobileUserDTO'
+          description: Person Mobile User Object
+        userLogin:
+          $ref: '#/components/schemas/UserLoginAdvancedDTO'
+          description: User Login Object
+        userLoginProfile:
+          description: User Login Profile Object
+          type: array
+          items:
+            $ref: '#/components/schemas/UserLoginProfileDTO'
+        personTM:
+          $ref: '#/components/schemas/PersonTMDTO'
+          description: Person TM
+    UserLoginAdvancedDTO:
+      title: userLogin
+      description: Object for Person to User Login relationship
+      required:
+        - username
+      type: object
+      properties:
+        username:
+          description: Username
+          type: string
+        userPassword:
+          description: Encrypted Password Required
+          type: string
+        userEnabled:
+          description: User Enabled
+          type: boolean
+        currentDomainId:
+          format: int32
+          description: Current Domain Id
+          type: integer
+        userCulture:
+          description: User Culture
+          type: string
+        userTypeId:
+          format: int32
+          description: The resource type of the employee. Maps to "Item Code" field of Category code Code.Catcd=1073.
+          type: integer
+        isLocked:
+          description: Is Locked
+          type: boolean
+        mustChangePassword:
+          description: Flag to indicate if the password is required to be reset on user login
+          type: boolean
+        passwordExpiryDate:
+          format: date-time
+          description: The expiration date/time of the user's account password.
+          type: string
+    AssessmentResponseSummaryAPIDTO:
+      description: ''
+      type: object
+      properties:
+        timeTaken:
+          format: double
+          description: time taken to complete activity
+          type: number
+        totalQuestionsCount:
+          format: int32
+          description: number of TotalQuestionsCount
+          type: integer
+        noOfCorrectAnswers:
+          format: int32
+          description: number of correct answers
+          type: integer
+        noOfIncorrectAnswers:
+          format: int32
+          description: number of incorrect answers
+          type: integer
+        noOfUnanswerdQuestions:
+          format: int32
+          description: number of unanswered questions
+          type: integer
+        noOfPartiallyCorrectAnswers:
+          format: int32
+          description: number of partially correct answers
+          type: integer
+        correctAnswers:
+          description: CorrectAnswers obect
+          type: array
+          items:
+            $ref: '#/components/schemas/AssessmentAnswerSummaryAPIDTO'
+        incorrectAnswers:
+          description: IncorrectAnswers obect
+          type: array
+          items:
+            $ref: '#/components/schemas/AssessmentAnswerSummaryAPIDTO'
+        unanswerdQuestions:
+          description: UnanswerdQuestions obect
+          type: array
+          items:
+            $ref: '#/components/schemas/AssessmentAnswerSummaryAPIDTO'
+        partiallyCorrectAnswers:
+          description: CorrectAnswers obect
+          type: array
+          items:
+            $ref: '#/components/schemas/AssessmentAnswerSummaryAPIDTO'
+    AssessmentAnswerSummaryAPIDTO:
+      description: Response for AssessmentResponseSummaryAPIDTO API
+      type: object
+      properties:
+        questionID:
+          format: int32
+          description: QuestionId of the Question Bank
+          type: integer
+        questionText:
+          description: QuestionText of the Question
+          type: string
+        questionTextWithFormat:
+          description: QuestionTextWithFormat of the Question
+          type: string
+        questionType:
+          description: "QuestionType will be MultipleChoice, MultipleSelect, FillInBlank,\r\nMatchTheFollowing, TrueFalse, Open-Ended and Ranking"
+          type: string
+        questionSequenceId:
+          format: int32
+          description: Question sequence Id
+          type: integer
+        isAnswered:
+          description: Question is Answered Or Not
+          type: boolean
+        correctAnswer:
+          description: Display the Question Options
+          type: array
+          items:
+            $ref: '#/components/schemas/DisplayAnswerDTO'
+        learnerAnswer:
+          description: "LearnerAnswer which contains three fields i.e., AnswerId, AnswerText, MatchAnswerId;\r\nFor FillinBlank and Open-Ended QuestionType  - only AnswerText field is populated;\r\nFor MultipleChoice,MultipleSelect,TrueorFalse -  only AnswerId field is populated;\r\nFor MatchItems and Ranking - AnswerId and MatchAnswerID fields are populated"
+          type: array
+          items:
+            $ref: '#/components/schemas/LearnersAnswerDTO'
+    DisplayAnswerDTO:
+      description: answer option details for a question
+      type: object
+      properties:
+        answerID:
+          type: array
+          items:
+            type: string
+        answerText:
+          type: array
+          items:
+            type: string
+        matchAnswerID:
+          description: match answer id
+          type: string
+        matchAnswerText:
+          description: match text
+          type: string
+        feedback:
+          description: question feedback
+          type: string
+    LearnersAnswerDTO:
+      description: learner's answer details
+      type: object
+      properties:
+        answerID:
+          description: answer id
+          type: string
+        answerText:
+          description: answer text
+          type: string
+        matchAnswerID:
+          description: match answer id
+          type: string
+    QuestionResponseAPIDTO:
+      description: Response for GetQuestionById API
+      type: object
+      properties:
+        questionID:
+          description: QuestionId of the Question Bank
+          type: string
+        questionText:
+          description: QuestionText of the Question
+          type: string
+        questionTextWithFormat:
+          description: QuestionTextWithFormat of the Question
+          type: string
+        questionType:
+          description: "QuestionType will be MultipleChoice, MultipleSelect, FillInBlank,\r\nMatchTheFollowing, TrueFalse, Open-Ended and Ranking"
+          type: string
+        questionSequenceId:
+          description: Question sequence Id
+          type: string
+        isMandatory:
+          description: Question is Mandatory Or Not, This is applicable only for Poll or Survey
+          type: boolean
+        questionFeedback:
+          description: QuestionFeedback of the Question
+          type: string
+        isAnswered:
+          description: Question is Answered Or Not
+          type: boolean
+        options:
+          description: Display the Question Options
+          type: array
+          items:
+            $ref: '#/components/schemas/DisplayAnswerDTO'
+        learnerAnswer:
+          description: "LearnerAnswer which contains three fields i.e., AnswerId, AnswerText, MatchAnswerId;\r\nFor FillinBlank and Open-Ended QuestionType  - only AnswerText field is populated;\r\nFor MultipleChoice,MultipleSelect,TrueorFalse -  only AnswerId field is populated;\r\nFor MatchItems and Ranking - AnswerId and MatchAnswerID fields are populated"
+          type: array
+          items:
+            $ref: '#/components/schemas/LearnersAnswerDTO'
+    QuestionsAPIDTO:
+      description: Response for Get All Questions API
+      type: object
+      properties:
+        questionID:
+          description: QuestionId of the Question Bank
+          type: string
+        questionSequenceId:
+          description: Question sequence Id
+          type: string
+        isAnswered:
+          description: Question is Answered Or Not
+          type: boolean
+    PaginatedData-AttestationReponseDTO:
+      description: Pagination class details and data
+      type: object
+      properties:
+        pagination:
+          $ref: '#/components/schemas/PaginationDetails'
+          description: Details of Pagination
+        data:
+          description: Data. List of items
+          type: array
+          items:
+            $ref: '#/components/schemas/AttestationReponseDTO'
+    AttestationReponseDTO:
+      description: Gets or sets Attestation response
+      type: object
+      properties:
+        name:
+          description: Gets or sets Name
+          type: string
+        description:
+          description: Gets or sets Description
+          type: string
+        text:
+          description: Gets or sets Text
+          type: string
+        hash:
+          description: Gets or sets Hash
+          type: string
+        isEnabled:
+          description: Gets or sets IsEnabled
+          type: boolean
+        isDeleted:
+          description: Gets or sets IsDeleted
+          type: boolean
+        isShowTerms:
+          description: Gets or sets IsShowTerms
+          type: boolean
+        isSignatureEnabled:
+          description: Gets or sets IsSignatureEnabled
+          type: boolean
+        reatTestEnabled:
+          description: Gets or sets ReatTestEnabled
+          type: boolean
+        createdTime:
+          format: date-time
+          description: Gets or sets Created
+          type: string
+        createdBy:
+          description: Gets or sets CreatedBy
+          type: string
+        modifiedTime:
+          format: date-time
+          description: Gets or sets Modified
+          type: string
+        modifiedBy:
+          description: Gets or sets ModifiedBy
+          type: string
+        mustAttestonTextChange:
+          description: Gets or Sets the admin configuration flag to force Re-attest if base text has changed
+          type: boolean
+        allusers:
+          description: Gets or Sets the Attestation Definition Text Hash
+          type: boolean
+        criteria:
+          description: Gets or sets a collection of associated criterias
+          type: array
+          items:
+            $ref: '#/components/schemas/Criteria'
+    Criteria:
+      description: Gets or sets Criteria
+      type: object
+      properties:
+        criteriaXml:
+          $ref: '#/components/schemas/CriteriaExtXmlDTO'
+          description: Gets or sets the criteria xml string
+        criteriaType:
+          description: Gets or sets the criteria type
+          type: string
+    CriteriaExtXmlDTO:
+      description: Criteria XML object
+      type: object
+      properties:
+        criteriaXmlString:
+          description: Gets or sets Generic SQL
+          type: string
+        recurranceInterval:
+          format: int32
+          description: Gets or sets Interval value
+          type: integer
+    ProviderContent:
+      type: object
+      properties:
+        courseJson:
+          type: string
+        topicJson:
+          type: string
+    UpdateCourseProgressDTO:
+      title: courseProgress
+      description: Gets or Sets the tracks dto
+      required:
+        - providerEntityCode
+        - uniqueUserIdentifier
+      type: object
+      properties:
+        providerEntityCode:
+          description: Gets or sets the domain id of a mooc run
+          type: string
+        uniqueUserIdentifier:
+          description: Gets or sets the User Unique identifier
+          type: string
+        startDate:
+          format: date-time
+          description: Gets or sets the start date of the progress
+          type: string
+        endDate:
+          format: date-time
+          description: Gets or sets the End Date of the progress
+          type: string
+        completed:
+          description: Gets or sets if the course is completed or not.
+          type: boolean
+        success:
+          description: Gets or sets if the course is success or not.
+          type: boolean
+        score:
+          $ref: '#/components/schemas/CourseProgressScore'
+          description: Gets or sets the score user has achieved.
+        elapsedSeconds:
+          format: double
+          description: Gets or sets the elapsed seconds that user spent.
+          type: number
+    CourseProgressScore:
+      title: score
+      type: object
+      properties:
+        raw:
+          format: double
+          type: number
+        scaled:
+          format: double
+          type: number
+        min:
+          format: double
+          type: number
+        max:
+          format: double
+          type: number
+    InitiativeDTO:
+      type: object
+      properties:
+        created:
+          format: date-time
+          description: The date that the initiative was created
+          type: string
+        creator:
+          $ref: '#/components/schemas/BusinessEntityRefDTO'
+          description: The person who created this initiative
+        initiativeDetails:
+          description: Gets or sets the details/metrics of the iniative
+          type: array
+          items:
+            $ref: '#/components/schemas/InitiativeDetailDTO'
+        cardImageIdentifier:
+          description: Gets or sets the card image
+          type: string
+        initiativeDefinitionId:
+          format: int32
+          description: Gets or sets the initiative definition id
+          type: integer
+        cardPropertiesJSON:
+          description: The card properties to be shown
+          type: string
+        currentStep:
+          $ref: '#/components/schemas/ProcessStepDTO'
+          description: Gets or sets the current step
+        currentStepPosition:
+          format: int32
+          description: Gets the current step number
+          type: integer
+        totalStepCount:
+          format: int32
+          description: Gets the total process steps count
+          type: integer
+        communityId:
+          description: Gets the community id
+          type: string
+        communityName:
+          description: Gets the community name
+          type: string
+        assignedDate:
+          format: date-time
+          description: Gets the initiative assigned date
+          type: string
+        updatedDate:
+          format: date-time
+          description: Gets the initiative last Updated date
+          type: string
+        status:
+          description: Gets the initiative status
+          type: string
+        initiativeId:
+          format: int32
+          description: Gets or sets the Initiative Id
+          type: integer
+        adminNotes:
+          description: Gets or sets the admin notes
+          type: string
+        processName:
+          description: Gets or sets the process name
+          type: string
+        activeStepCount:
+          format: int32
+          description: Gets or Sets ActiveStepCount
+          type: integer
+        completeMandatoryStepCount:
+          format: int32
+          description: Gets or Sets CompleteMandatoryStepCount
+          type: integer
+        percentComplete:
+          format: int32
+          description: Gets or Sets PercentComplete
+          type: integer
+        lastActionDate:
+          format: date-time
+          description: Gets or Sets LastActionDate
+          type: string
+        statusText:
+          description: Gets or Sets StatusText
+          type: string
+        totalMandatoryStepCount:
+          format: int32
+          description: Gets or Sets TotalMandatoryStepCount
+          type: integer
+        id:
+          format: int32
+          description: Gets or sets the id
+          type: integer
+        processes:
+          description: Gets or sets the initiative to processes
+          type: array
+          items:
+            $ref: '#/components/schemas/ProcessDTO'
+        name:
+          description: Gets or sets the initiative name
+          type: string
+        description:
+          description: Gets or sets the initiative description
+          type: string
+        startDate:
+          format: date-time
+          description: Gets or sets the initiative start date
+          type: string
+        endOffset:
+          format: int32
+          description: Gets or sets the initiative end offset
+          type: integer
+        endDate:
+          format: date-time
+          description: Gets the initiative end date
+          type: string
+          readOnly: true
+        isActive:
+          description: Gets or sets the flag indicating if the initiative is active
+          type: boolean
+        owner:
+          $ref: '#/components/schemas/BusinessEntityRefDTO'
+          description: Gets or sets the owner of this initiative
+        processStepGroups:
+          description: Gets or sets the step groups for this initiative
+          type: array
+          items:
+            $ref: '#/components/schemas/ProcessStepGroupDTO'
+        links:
+          description: Gets or sets the links. HATEOAS
+          type: array
+          items:
+            $ref: '#/components/schemas/RestAction'
+    BusinessEntityRefDTO:
+      description: Data contract for business entity reference.
+      type: object
+      properties:
+        id:
+          description: Gets or sets the identifier for the object.
+          type: string
+        name:
+          description: Gets or sets the name of the object.
+          type: string
+        key:
+          description: Gets or sets the key of the object.
+          type: string
+        value:
+          description: Gets or sets the value for the object
+          type: string
+    InitiativeDetailDTO:
+      description: Represents a metric based on a given initiative
+      type: object
+      properties:
+        title:
+          description: Gets or sets the detail/metric title
+          type: string
+        value:
+          description: Gets or sets the detail/metric value
+          type: string
+        iconType:
+          description: Gets or sets the detail/metric icon type
+          type: string
+        metricType:
+          description: Gets or sets the metric type of the detail/metric
+          type: string
+        key:
+          description: Gets or sets the key
+          type: string
+    ProcessStepDTO:
+      type: object
+      properties:
+        stepName:
+          description: Gets or sets the process step name
+          type: string
+        stepDescription:
+          description: Gets or sets the process step description
+          type: string
+        ordinalPosition:
+          format: int32
+          description: Gets or sets the ordinal position label
+          type: integer
+        stepType:
+          description: Gets or sets the view name
+          type: string
+        stepKey:
+          description: Gets or sets the view key
+          type: string
+        templateURL:
+          description: Gets or sets the template url
+          type: string
+        adminURL:
+          description: Gets or sets the admin url
+          type: string
+        parameterJSON:
+          description: Gets or sets the parameter json
+          type: string
+        processId:
+          format: int32
+          description: Gets or sets the process id
+          type: integer
+        processEntityStepStates:
+          description: Gets or sets the process entity step state collection
+          type: array
+          items:
+            $ref: '#/components/schemas/ProcessEntityStepStateDTO'
+        startDate:
+          format: date-time
+          description: Explicit date when the step should be started.
+          type: string
+        endDate:
+          format: date-time
+          description: Explicit date when the step should be completed.
+          type: string
+        isMandatory:
+          description: Gets or sets whether this step is required to complete the group
+          type: boolean
+        isGate:
+          description: Gets or sets whether this step blocks later steps in the group
+          type: boolean
+        unlockDays:
+          format: int32
+          description: Gets or sets the number of days until this step is unlocked
+          type: integer
+        lockedStepId:
+          format: int32
+          description: Gets or sets the prerequisite step for this step
+          type: integer
+        priority:
+          format: int32
+          description: Gets or sets the priority of this step
+          type: integer
+        'stepStatus ':
+          description: Gets or sets the status of this step in string form
+          type: string
+        data:
+          description: Gets or sets the list of process step data
+          type: array
+          items:
+            $ref: '#/components/schemas/ProcessStepDataDTO'
+        isOverridden:
+          description: Gets or sets the isoverridden flag
+          type: boolean
+        instructions:
+          description: Gets or sets the instructions
+          type: string
+        overrideHtmlContent:
+          description: Gets or sets the override html content
+          type: string
+        cardImageName:
+          description: Template card image name
+          type: string
+        stepCardImageUrl:
+          description: Template card image identifier
+          type: string
+        stepUpdatedDate:
+          format: date-time
+          description: Gets or sets the item last updated date
+          type: string
+        stepId:
+          format: int32
+          description: Gets or sets the process step id
+          type: integer
+        lockedStepOrdinalPosition:
+          format: int32
+          description: Gets or Sets LockedStepOrdinalPosition
+          type: integer
+        lockedReason:
+          description: Gets or Sets LockedReason
+          type: string
+        blankActivities:
+          description: Gets or Sets BlankActivities
+          type: array
+          items:
+            $ref: '#/components/schemas/BlankActivityDTO'
+        id:
+          format: int32
+          description: Gets or sets the Id
+          type: integer
+    ProcessDTO:
+      type: object
+      properties:
+        name:
+          description: Gets or sets the name of the process
+          type: string
+        description:
+          description: Gets or sets the description of the process
+          type: string
+        processEntities:
+          description: Gets or sets the process entity
+          type: array
+          items:
+            $ref: '#/components/schemas/ProcessEntityDTO'
+        startOffset:
+          format: int32
+          description: The Offset in days from the start of the Initiative to the start of the Process.
+          type: integer
+        endOffset:
+          format: int32
+          description: The Offset in days from the start off the Initiative to the end of the Process.
+          type: integer
+        effectiveDateOffset:
+          format: int32
+          description: The Date the process takes effect, stored as an offset from the Initiative Start Date.
+          type: integer
+        definitions:
+          description: A list of all process to template objects that belong to this process.
+          type: array
+          items:
+            $ref: '#/components/schemas/ProcessToDefinitionDTO'
+        processType:
+          format: int32
+          description: "Gets or sets the process type\r\n0 = generic, 1 = preboarding, 2= onboarding"
+          type: integer
+        id:
+          format: int32
+          description: Gets or sets the Id
+          type: integer
+    ProcessStepGroupDTO:
+      description: Process step group dto
+      type: object
+      properties:
+        processSteps:
+          description: Gets or sets the process steps
+          type: array
+          items:
+            $ref: '#/components/schemas/ProcessStepDTO'
+        ordinalPosition:
+          format: int32
+          description: Gets or sets the ordinal position
+          type: integer
+        processId:
+          format: int32
+          description: Gets or sets the process id
+          type: integer
+        status:
+          description: Gets or sets the status of this step group in string form
+          type: string
+        name:
+          description: Gets or sets the process step name
+          type: string
+        description:
+          description: Gets or sets the process step description
+          type: string
+        hiddenDays:
+          format: int32
+          description: Gets or Sets HiddenDays
+          type: integer
+        hiddenGroupId:
+          format: int32
+          description: Gets or Sets HiddenGroupId
+          type: integer
+        hiddenReason:
+          description: Gets or Sets HiddenReason
+          type: string
+        lockedDays:
+          format: int32
+          description: Gets or Sets LockedDays
+          type: integer
+        lockedGroupId:
+          format: int32
+          description: Gets or Sets LockedGroupId
+          type: integer
+        lockedReason:
+          description: Gets or Sets LockedReason
+          type: string
+        id:
+          format: int32
+          description: Gets or sets the Id
+          type: integer
+    RestAction:
+      type: object
+      properties:
+        rel:
+          description: Gets or sets the relation
+          type: string
+        href:
+          description: Gets or sets the href
+          type: string
+        key:
+          description: Gets or sets the link key
+          type: string
+        httpVerb:
+          description: Gets the http verb
+          type: string
+    ProcessEntityStepStateDTO:
+      description: "The Process Step Approval Model stores a record of the approvers for a given Process Step.\r\nThe Fulfilled Relationships property stores the relationships the approver had to the owner\r\nof the Process entity at the time of approval. Comments may be tracked along with approvals."
+      type: object
+      properties:
+        entryDate:
+          format: date-time
+          description: The Date the state change occurred
+          type: string
+        startOffset:
+          format: int32
+          description: Offset in days from the process's start date when this step should start.
+          type: integer
+        endOffset:
+          format: int32
+          description: Offset in days from the process step's start date when the step should be completed.
+          type: integer
+        startDate:
+          format: date-time
+          description: Explicit date when the step should be started.
+          type: string
+        endDate:
+          format: date-time
+          description: Explicit date when the step should be completed.
+          type: string
+        isOverridden:
+          description: Gets or sets the isoverridden
+          type: boolean
+        instructions:
+          description: Gets or sets the instructions
+          type: string
+        overrideHtmlContent:
+          description: Gets or sets the override html content
+          type: string
+        parameterJSON:
+          description: Gets or sets the parameter json
+          type: string
+        priority:
+          format: int32
+          description: Gets or sets the priority of this step
+          type: integer
+        stepData:
+          description: Gets or sets the step data
+          type: array
+          items:
+            $ref: '#/components/schemas/ProcessEntityStepDataDTO'
+        systemComment:
+          description: Comments left by the administrator or system
+          type: string
+        id:
+          format: int32
+          description: Gets or sets the Id
+          type: integer
+    ProcessStepDataDTO:
+      type: object
+      properties:
+        $defaultDataLinkingId:
+          format: int32
+          description: Gets or sets the default data linking id
+          type: integer
+        id:
+          format: int32
+          description: Gets or sets the Id
+          type: integer
+    BlankActivityDTO:
+      description: DTO for blank activity
+      type: object
+      properties:
+        contentType:
+          format: int32
+          description: Gets or sets the content type
+          type: integer
+        hideLeftPane:
+          description: Gets or sets whether the left pane should be hidden
+          type: boolean
+        customHtml:
+          description: Gets or sets the custom html content
+          type: string
+        externalUrl:
+          description: Get or sets the embeded website URL
+          type: string
+        internalUrl:
+          description: Get or sets the user entered internal website URL
+          type: string
+        confirmCompletion:
+          description: Gets or sets whether this requires completion confirmation from assignee
+          type: boolean
+        isAdvancedHtml:
+          description: Gets or Sets IsAdvancedHTML
+          type: boolean
+        isTemplate:
+          description: Gets or sets the istemplate
+          type: boolean
+        $defaultDataLinkingId:
+          format: int32
+          description: Gets or sets the default data linking id
+          type: integer
+        id:
+          format: int32
+          description: Gets or sets the Id
+          type: integer
+    ProcessEntityDTO:
+      type: object
+      properties:
+        currentProcessStepId:
+          format: int32
+          description: Gets or sets the current process step
+          type: integer
+        currentStepStateId:
+          format: int32
+          description: The state of the workflow for this entity in the current step
+          type: integer
+        id:
+          format: int32
+          description: Gets or sets the Id
+          type: integer
+    ProcessToDefinitionDTO:
+      type: object
+      properties:
+        process:
+          $ref: '#/components/schemas/ProcessDTO'
+          description: Gets or sets the process
+        definition:
+          $ref: '#/components/schemas/ProcessEntityDefinitionDTO'
+          description: Gets or sets the process entity definition
+        id:
+          format: int32
+          description: Gets or sets the Id
+          type: integer
+    ProcessEntityStepDataDTO:
+      type: object
+      properties:
+        isTemplate:
+          description: Gets or sets the istemplate
+          type: boolean
+        $defaultDataLinkingId:
+          format: int32
+          description: Gets or sets the default data linking id
+          type: integer
+        id:
+          format: int32
+          description: Gets or sets the Id
+          type: integer
+    ProcessEntityDefinitionDTO:
+      type: object
+      properties:
+        processEntityDefinitionType:
+          description: Gets or sets the process entity definition type
+          type: string
+        processToDefinitions:
+          description: Gets or sets the process to definitions
+          type: array
+          items:
+            $ref: '#/components/schemas/ProcessToDefinitionDTO'
+        name:
+          description: Gets or sets the name
+          type: string
+        description:
+          description: Gets or sets the description
+          type: string
+        defaultData:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProcessEntityDefinitionDefaultStepDataDTO'
+        id:
+          format: int32
+          description: Gets or sets the Id
+          type: integer
+    ProcessEntityDefinitionDefaultStepDataDTO:
+      type: object
+      properties:
+        processStep:
+          $ref: '#/components/schemas/BusinessEntityRefDTO'
+          description: Gets or sets the process step
+        stepData:
+          $ref: '#/components/schemas/ProcessEntityStepDataDTO'
+          description: Gets or sets the step data
+        processEntityDefinition:
+          $ref: '#/components/schemas/BusinessEntityRefDTO'
+          description: Gets or sets the process entity definition
+        id:
+          format: int32
+          description: Gets or sets the Id
+          type: integer
+    OkResult:
+      type: object
+      properties:
+        request:
+          type: object
+          readOnly: true
+    InternalServerErrorResult:
+      type: object
+      properties:
+        request:
+          type: object
+          readOnly: true
+    JobCreateUpdateDTO:
+      description: Job Create/Update Request DTO
+      required:
+        - jobName
+        - jobNumber
+        - domainId
+      type: object
+      properties:
+        jobName:
+          description: The user entered name of the job
+          type: string
+        jobNumber:
+          description: Customer facing job id
+          type: string
+        templateNumber:
+          description: User entered template number
+          type: string
+        langCode:
+          description: The language this job is for.  Maps to Catcd 1007.
+          type: string
+        descriptionText:
+          description: User entered description of the job
+          type: string
+        url:
+          description: User entered url
+          type: string
+        domainId:
+          format: int32
+          description: User selected domain for this job; comes from domainJob table
+          type: integer
+        jobCode:
+          description: User entered job code
+          type: string
+        optionalData:
+          $ref: '#/components/schemas/JobTemplateOptionalDTO'
+          description: User entered optional data.
+    JobTemplateOptionalDTO:
+      description: Job Template Optional DTO
+      type: object
+      properties:
+        text1:
+          description: Optional text 1
+          type: string
+        text2:
+          description: Optional text 2
+          type: string
+        text3:
+          description: Optional text 3
+          type: string
+        text4:
+          description: Optional text 4
+          type: string
+        date1:
+          format: date-time
+          description: Optional date 1
+          type: string
+        date2:
+          format: date-time
+          description: Optional date 2
+          type: string
+        money1:
+          format: double
+          description: Optional money 1
+          type: number
+        integer1:
+          format: int32
+          description: Optional integer 1
+          type: integer
+        float1:
+          format: double
+          description: Optional float 1
+          type: number
+        indicator1:
+          description: Optional boolean 1
+          type: boolean
+        memo1:
+          description: Optional memo 1 - allows longer text length than the text# fields
+          type: string
+        currencyId:
+          format: int32
+          description: 'Gets or set CurrencyId applicable values: 10 = Euros, 11 = US Dollar, 13 = Australian Dollars, 15 = Canadian Dollars, 16 = Swiss Franc, 17 = Yuan Renminbi, 23 = GB Pounds, 31 = Japanese Yen, 34 = Mexican Peso, 69 = Indian Rupee'
+          type: integer
+    TimezoneDTO:
+      type: object
+      properties:
+        timezoneId:
+          description: Id of Timezone
+          type: string
+        value:
+          description: Value of Timezone
+          type: string
+        name:
+          description: Name of Timezone
+          type: string
+    CurrencyDTO:
+      type: object
+      properties:
+        currencyId:
+          description: Id of Currency
+          type: string
+        value:
+          description: Value of Currency
+          type: string
+    LanguageDTO:
+      type: object
+      properties:
+        languageId:
+          description: Id of Language
+          type: string
+        name:
+          description: Value of Language
+          type: string
+        isRightToLeft:
+          description: Language is Right to Left
+          type: string
+        locale:
+          description: Locale of Language
+          type: string
+    OrganizationCreateUpdateDTO:
+      description: Organization Create/Update Request DTO
+      required:
+        - orgName
+        - orgCode
+        - hierarchyId
+      type: object
+      properties:
+        orgName:
+          description: Gets or sets the Organization Name
+          type: string
+        orgCode:
+          description: Gets or sets the Organization Code/ID
+          type: string
+        hierarchyId:
+          format: int32
+          description: Gets or sets the Hierarchy Code/ID
+          type: integer
+        orgTypeCode:
+          description: 'Gets or sets the  Organization Type Code <br></br> Applicable values: 1 = Business Unit, 2 = Department, 3 = Division'
+          type: string
+        parentOrganizationId:
+          format: int32
+          description: Gets or sets the Parent Organization Id
+          type: integer
+        isDomain:
+          description: Gets or sets Domain Indicator
+          type: boolean
+        email:
+          description: Gets or sets the Organization Email
+          type: string
+        description:
+          description: Gets or sets the Organization Description
+          type: string
+        url:
+          description: Gets or sets the Organization Url
+          type: string
+        contactInfo:
+          $ref: '#/components/schemas/OrganizationCommunicationDTO'
+          description: Gets or sets Optional Organization Contact Info
+        optionalData:
+          $ref: '#/components/schemas/OrganizationOptional1DTO'
+          description: Gets or sets Organization Optional Info
+    OrganizationCommunicationDTO:
+      description: Gets organization contact info
+      type: object
+      properties:
+        address1:
+          description: Gets the Organization Address1
+          type: string
+        address2:
+          description: Gets the Organization Address2
+          type: string
+        address3:
+          description: Gets the Organization Address3
+          type: string
+        city:
+          description: Gets the Organization City
+          type: string
+        county:
+          description: Gets the Organization County
+          type: string
+        statename:
+          description: Gets the Organization Statename
+          type: string
+        zip:
+          description: Gets the Organization zip
+          type: string
+        country:
+          description: Gets the Organization country
+          type: string
+        phone1:
+          description: Gets the Organization Phone1
+          type: string
+        phone2:
+          description: Gets the Organization Phone1
+          type: string
+        fax:
+          description: Gets the Organization fax
+          type: string
+    OrganizationOptional1DTO:
+      type: object
+      properties:
+        text1:
+          type: string
+        text2:
+          type: string
+        text3:
+          type: string
+        text4:
+          type: string
+        text5:
+          type: string
+        text6:
+          type: string
+        text7:
+          type: string
+        text8:
+          type: string
+        text9:
+          type: string
+        text10:
+          type: string
+        text11:
+          type: string
+        text12:
+          type: string
+        text13:
+          type: string
+        text14:
+          type: string
+        text15:
+          type: string
+        date1:
+          format: date-time
+          type: string
+        date2:
+          format: date-time
+          type: string
+        integer1:
+          format: int32
+          type: integer
+        integer2:
+          format: int32
+          type: integer
+        float1:
+          format: double
+          type: number
+        float2:
+          format: double
+          type: number
+        decimal1:
+          format: double
+          type: number
+        decimal2:
+          format: double
+          type: number
+        ind1:
+          type: boolean
+        ind2:
+          type: boolean
+        money1:
+          format: double
+          type: number
+        money2:
+          format: double
+          type: number
+        memo1:
+          type: string
+        memo2:
+          type: string
+        currencyId:
+          format: int32
+          description: 'Gets or set CurrencyId applicable values: 10 = Euros, 11 = US Dollar, 13 = Australian Dollars, 15 = Canadian Dollars, 16 = Swiss Franc, 17 = Yuan Renminbi, 23 = GB Pounds, 31 = Japanese Yen, 34 = Mexican Peso, 69 = Indian Rupee'
+          type: integer
+    PostObjectResponseJSON:
+      type: object
+      properties:
+        validationMessages:
+          description: Response Validation Messages
+          type: array
+          items:
+            $ref: '#/components/schemas/ValidationMessageJSON'
+        response:
+          description: Response value
+          type: string
+        primaryKey:
+          format: int32
+          description: Response Primary Key
+          type: integer
+        status:
+          format: int32
+          description: Response status
+          type: integer
+    UserRecentSearchRecommendationsResponseDTO:
+      description: data contract for UserRecentSearchRecommendationsResponseDTO
+      type: object
+      properties:
+        activityData:
+          description: gets or sets activity Recommendations
+          type: array
+          items:
+            $ref: '#/components/schemas/UserRecentSearchRecommendationsDTO'
+        totalActivityCount:
+          format: int32
+          description: Get Total activities count
+          type: integer
+        recommendationSource:
+          format: int32
+          description: Get the Source of the recommendations
+          type: integer
+    UserRecentSearchRecommendationsDTO:
+      description: data contract for UserRecentSearchRecommendationsDTO
+      type: object
+      properties:
+        id:
+          format: int32
+          description: Get or Set the Activity Id
+          type: integer
+        name:
+          description: Get or Set the Activity Name
+          type: string
+        type:
+          description: Get or Set the Activity Type
+          type: string
+        imageUrl:
+          description: Get or Set the Activity Image Url
+          type: string
+        defaultImageUrl:
+          description: Get or Set the Activity Default Image Url
+          type: string
+        activityDuration:
+          format: double
+          description: Get or Set the Activity Duration
+          type: number
+        rootActivityId:
+          format: int32
+          description: Get or Set the Root Activity Id
+          type: integer
+        isActive:
+          description: Get or Set the Activity active/inactive
+          type: boolean
+        isCanceled:
+          description: Get or Set the Activity cancelled
+          type: boolean
+        activityRating:
+          format: int32
+          description: Get or Set the Activity Rating
+          type: integer
+        averageRating:
+          format: double
+          description: Get or Set the Activity Average Rating
+          type: number
+        ratingCount:
+          format: int32
+          description: Get or Set the Activity Rating Count
+          type: integer
+        isFavorite:
+          description: Get or Set the Activity Favorite
+          type: boolean
+        isRatingEnabled:
+          description: Get or Set the Activity Rating Enabled
+          type: boolean
+        launchMethod:
+          format: int32
+          description: Get or Set the Activity Launch method
+          type: integer
+        searchKeyword:
+          description: Get or Set the Search Keyword
+          type: string
+        suggestedSource:
+          format: int32
+          description: Get or Set the Suggested Source
+          type: integer
+    SearchResponse2:
+      type: object
+      properties:
+        providerSearchResults:
+          $ref: '#/components/schemas/ContentProviderSearchResultsDto'
+        isFuzzySearch:
+          type: boolean
+        isWildCardSearch:
+          type: boolean
+        searchResults:
+          $ref: '#/components/schemas/SearchResultsDto'
+        suggestionResultSection:
+          type: array
+          items:
+            $ref: '#/components/schemas/SuggestionSection'
+        facets:
+          type: array
+          items:
+            $ref: '#/components/schemas/FacetDto'
+        startRow:
+          format: int32
+          type: integer
+        totalCount:
+          format: int32
+          type: integer
+        pageCount:
+          format: int32
+          type: integer
+        skillSoftResults:
+          $ref: '#/components/schemas/SkillSoftSearchResultsDTO'
+        actionResponse:
+          $ref: '#/components/schemas/NLActionResponseDTO'
+        facetFields:
+          type: array
+          items:
+            $ref: '#/components/schemas/SearchPropertyDto'
+        errorTypeId:
+          format: int32
+          type: integer
+        showFilter:
+          type: boolean
+        isRatingEnabled:
+          type: boolean
+    ContentProviderSearchResultsDto:
+      type: object
+      properties:
+        searchId:
+          type: string
+        assetCount:
+          format: int32
+          type: integer
+        totalBinCount:
+          format: int32
+          type: integer
+        providerBins:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProviderBin'
+    SearchResultsDto:
+      type: object
+      properties:
+        bins:
+          type: array
+          items:
+            $ref: '#/components/schemas/SearchResultBinDto'
+    SuggestionSection:
+      type: object
+      properties:
+        sectionKey:
+          type: string
+        suggestText:
+          type: string
+        suggestions:
+          type: array
+          items:
+            $ref: '#/components/schemas/SuggestionItem'
+    FacetDto:
+      type: object
+      properties:
+        facetName:
+          type: string
+        facetActualName:
+          type: string
+        fieldName:
+          type: string
+        facetType:
+          type: string
+        facetItems:
+          type: array
+          items:
+            $ref: '#/components/schemas/FacetItemDto'
+        displayOrder:
+          format: int32
+          type: integer
+        boostFieldName:
+          type: string
+        facetLimit:
+          format: int32
+          type: integer
+        facetCount:
+          format: int32
+          type: integer
+        isFacetCollapse:
+          type: boolean
+        isFacetShowMore:
+          type: boolean
+    SkillSoftSearchResultsDTO:
+      type: object
+      properties:
+        searchId:
+          type: string
+        assetCount:
+          format: int32
+          type: integer
+        skillSoftBins:
+          type: array
+          items:
+            $ref: '#/components/schemas/SkillsoftBin'
+    NLActionResponseDTO:
+      type: object
+      properties:
+        isValid:
+          type: boolean
+        actionResponseType:
           enum:
-          - "available"
-          - "pending"
-          - "sold"
-          default: "available"
-        collectionFormat: "multi"
-      responses:
-        200:
-          description: "successful operation"
-          schema:
-            type: "array"
-            items:
-              $ref: "#/definitions/Pet"
-        400:
-          description: "Invalid status value"
-      security:
-      - petstore_auth:
-        - "write:pets"
-        - "read:pets"
-  /pet/findByTags:
-    get:
-      tags:
-      - "pet"
-      summary: "Finds Pets by tags"
-      description: "Multiple tags can be provided with comma separated strings. Use\
-        \ tag1, tag2, tag3 for testing."
-      operationId: "findPetsByTags"
-      produces:
-      - "application/json"
-      - "application/xml"
-      parameters:
-      - name: "tags"
-        in: "query"
-        description: "Tags to filter by"
-        required: true
-        type: "array"
-        items:
-          type: "string"
-        collectionFormat: "multi"
-      responses:
-        200:
-          description: "successful operation"
-          schema:
-            type: "array"
-            items:
-              $ref: "#/definitions/Pet"
-        400:
-          description: "Invalid tag value"
-      security:
-      - petstore_auth:
-        - "write:pets"
-        - "read:pets"
-      deprecated: true
-  /pet/{petId}:
-    get:
-      tags:
-      - "pet"
-      summary: "Find pet by ID"
-      description: "Returns a single pet"
-      operationId: "getPetById"
-      produces:
-      - "application/json"
-      - "application/xml"
-      parameters:
-      - name: "petId"
-        in: "path"
-        description: "ID of pet to return"
-        required: true
-        type: "integer"
-        format: "int64"
-      responses:
-        200:
-          description: "successful operation"
-          schema:
-            $ref: "#/definitions/Pet"
-        400:
-          description: "Invalid ID supplied"
-        404:
-          description: "Pet not found"
-      security:
-      - api_key: []
-    post:
-      tags:
-      - "pet"
-      summary: "Updates a pet in the store with form data"
-      description: ""
-      operationId: "updatePetWithForm"
-      consumes:
-      - "application/x-www-form-urlencoded"
-      produces:
-      - "application/json"
-      - "application/xml"
-      parameters:
-      - name: "petId"
-        in: "path"
-        description: "ID of pet that needs to be updated"
-        required: true
-        type: "integer"
-        format: "int64"
-      - name: "name"
-        in: "formData"
-        description: "Updated name of the pet"
-        required: false
-        type: "string"
-      - name: "status"
-        in: "formData"
-        description: "Updated status of the pet"
-        required: false
-        type: "string"
-      responses:
-        405:
-          description: "Invalid input"
-      security:
-      - petstore_auth:
-        - "write:pets"
-        - "read:pets"
-    delete:
-      tags:
-      - "pet"
-      summary: "Deletes a pet"
-      description: ""
-      operationId: "deletePet"
-      produces:
-      - "application/json"
-      - "application/xml"
-      parameters:
-      - name: "api_key"
-        in: "header"
-        required: false
-        type: "string"
-      - name: "petId"
-        in: "path"
-        description: "Pet id to delete"
-        required: true
-        type: "integer"
-        format: "int64"
-      responses:
-        400:
-          description: "Invalid ID supplied"
-        404:
-          description: "Pet not found"
-      security:
-      - petstore_auth:
-        - "write:pets"
-        - "read:pets"
-  /store/order:
-    post:
-      tags:
-      - "store"
-      summary: "Place an order for a pet"
-      description: ""
-      operationId: "placeOrder"
-      consumes:
-      - "application/json"
-      produces:
-      - "application/json"
-      - "application/xml"
-      parameters:
-      - in: "body"
-        name: "body"
-        description: "order placed for purchasing the pet"
-        required: true
-        schema:
-          $ref: "#/definitions/Order"
-      responses:
-        200:
-          description: "successful operation"
-          schema:
-            $ref: "#/definitions/Order"
-        400:
-          description: "Invalid Order"
-  /store/order/{orderId}:
-    get:
-      tags:
-      - "store"
-      summary: "Find purchase order by ID"
-      description: "For valid response try integer IDs with value >= 1 and <= 10.\
-        \ Other values will generated exceptions"
-      operationId: "getOrderById"
-      produces:
-      - "application/json"
-      - "application/xml"
-      parameters:
-      - name: "orderId"
-        in: "path"
-        description: "ID of pet that needs to be fetched"
-        required: true
-        type: "integer"
-        maximum: 10
-        minimum: 1
-        format: "int64"
-      responses:
-        200:
-          description: "successful operation"
-          schema:
-            $ref: "#/definitions/Order"
-        400:
-          description: "Invalid ID supplied"
-        404:
-          description: "Order not found"
-    delete:
-      tags:
-      - "store"
-      summary: "Delete purchase order by ID"
-      description: "For valid response try integer IDs with positive integer value.\
-        \ Negative or non-integer values will generate API errors"
-      operationId: "deleteOrder"
-      produces:
-      - "application/json"
-      - "application/xml"
-      parameters:
-      - name: "orderId"
-        in: "path"
-        description: "ID of the order that needs to be deleted"
-        required: true
-        type: "integer"
-        minimum: 1
-        format: "int64"
-      responses:
-        400:
-          description: "Invalid ID supplied"
-        404:
-          description: "Order not found"
-  /store/inventory:
-    get:
-      tags:
-      - "store"
-      summary: "Returns pet inventories by status"
-      description: "Returns a map of status codes to quantities"
-      operationId: "getInventory"
-      produces:
-      - "application/json"
-      parameters: []
-      responses:
-        200:
-          description: "successful operation"
-          schema:
-            type: "object"
-            additionalProperties:
-              type: "integer"
-              format: "int32"
-      security:
-      - api_key: []
-  /user/createWithArray:
-    post:
-      tags:
-      - "user"
-      summary: "Creates list of users with given input array"
-      description: ""
-      operationId: "createUsersWithArrayInput"
-      consumes:
-      - "application/json"
-      produces:
-      - "application/json"
-      - "application/xml"
-      parameters:
-      - in: "body"
-        name: "body"
-        description: "List of user object"
-        required: true
-        schema:
-          type: "array"
+            - Redirection
+            - DialogMessage
+            - Question
+            - Popup
+            - MultiResult
+            - Other
+          type: string
+        targetEntityId:
+          format: int32
+          type: integer
+        reason:
+          type: string
+        nlActionKey:
+          type: string
+        searchText:
+          type: string
+    SearchPropertyDto:
+      type: object
+      properties:
+        name:
+          type: string
+        searchFieldName:
+          type: string
+        displayName:
+          type: string
+        sortDirection:
+          type: string
+        isFaceted:
+          type: boolean
+        facetType:
+          enum:
+            - RangeFacet
+            - DateRangeFacet
+            - FieldFacet
+            - None
+          type: string
+        fieldAlias:
+          type: string
+        isMultivalued:
+          type: boolean
+        facetRangeStart:
+          type: string
+        facetRangeEnd:
+          type: string
+        facetRangeGap:
+          type: string
+        isSearchable:
+          type: boolean
+        considerForNLActions:
+          type: boolean
+        facetLimit:
+          format: int32
+          type: integer
+        fieldType:
+          enum:
+            - String
+            - Date
+            - Number
+            - Location
+            - None
+          type: string
+        sortFieldName:
+          type: string
+        boostValue:
+          format: double
+          type: number
+        allowSort:
+          type: boolean
+        isSortable:
+          type: boolean
+        isTranslatable:
+          type: boolean
+        isConfigurable:
+          type: boolean
+        isSearchConfigurable:
+          type: boolean
+        facetFieldName:
+          type: string
+        isFacetCollapse:
+          type: boolean
+        isFacetDefaultVisible:
+          type: boolean
+        isUIEnabled:
+          format: int32
+          type: integer
+        displayOrder:
+          format: int32
+          type: integer
+        boostFieldName:
+          type: string
+        mlDisplayUI:
+          format: int32
+          type: integer
+        mlCompareData:
+          format: int32
+          type: integer
+        mlBoostValue:
+          format: int32
+          type: integer
+        isDefaultMLTEnabled:
+          format: int32
+          type: integer
+        id:
+          format: int32
+          description: Gets or sets the Id
+          type: integer
+    ProviderBin:
+      type: object
+      properties:
+        binName:
+          type: string
+        binUniqueName:
+          type: string
+        maxCount:
+          format: int32
+          type: integer
+        assets:
+          type: array
           items:
-            $ref: "#/definitions/User"
-      responses:
-        default:
-          description: "successful operation"
-  /user/createWithList:
-    post:
-      tags:
-      - "user"
-      summary: "Creates list of users with given input array"
-      description: ""
-      operationId: "createUsersWithListInput"
-      consumes:
-      - "application/json"
-      produces:
-      - "application/json"
-      - "application/xml"
-      parameters:
-      - in: "body"
-        name: "body"
-        description: "List of user object"
-        required: true
-        schema:
-          type: "array"
+            $ref: '#/components/schemas/ProviderActivityDto'
+        id:
+          format: int32
+          type: integer
+    SearchResultBinDto:
+      type: object
+      properties:
+        binName:
+          type: string
+        binKey:
+          type: string
+        binCount:
+          format: int32
+          type: integer
+        supportIncrementalIndexing:
+          type: boolean
+        resultItems:
+          $ref: '#/components/schemas/PaginatedSrdto-BaseSearchItemDto'
+    SuggestionItem:
+      type: object
+      properties:
+        term:
+          type: string
+        weight:
+          format: double
+          type: number
+    FacetItemDto:
+      type: object
+      properties:
+        name:
+          type: string
+        value:
+          type: string
+        isApplied:
+          type: boolean
+        filterQuery:
+          $ref: '#/components/schemas/FilterQueryDTO'
+    SkillsoftBin:
+      type: object
+      properties:
+        binName:
+          type: string
+        maxCount:
+          format: int32
+          type: integer
+        assets:
+          type: array
           items:
-            $ref: "#/definitions/User"
-      responses:
-        default:
-          description: "successful operation"
-  /user/{username}:
-    get:
-      tags:
-      - "user"
-      summary: "Get user by user name"
-      description: ""
-      operationId: "getUserByName"
-      produces:
-      - "application/json"
-      - "application/xml"
-      parameters:
-      - name: "username"
-        in: "path"
-        description: "The name that needs to be fetched. Use user1 for testing. "
-        required: true
-        type: "string"
-      responses:
-        200:
-          description: "successful operation"
-          schema:
-            $ref: "#/definitions/User"
-        400:
-          description: "Invalid username supplied"
-        404:
-          description: "User not found"
-    put:
-      tags:
-      - "user"
-      summary: "Updated user"
-      description: "This can only be done by the logged in user."
-      operationId: "updateUser"
-      consumes:
-      - "application/json"
-      produces:
-      - "application/json"
-      - "application/xml"
-      parameters:
-      - name: "username"
-        in: "path"
-        description: "name that need to be updated"
-        required: true
-        type: "string"
-      - in: "body"
-        name: "body"
-        description: "Updated user object"
-        required: true
-        schema:
-          $ref: "#/definitions/User"
-      responses:
-        400:
-          description: "Invalid user supplied"
-        404:
-          description: "User not found"
-    delete:
-      tags:
-      - "user"
-      summary: "Delete user"
-      description: "This can only be done by the logged in user."
-      operationId: "deleteUser"
-      produces:
-      - "application/json"
-      - "application/xml"
-      parameters:
-      - name: "username"
-        in: "path"
-        description: "The name that needs to be deleted"
-        required: true
-        type: "string"
-      responses:
-        400:
-          description: "Invalid username supplied"
-        404:
-          description: "User not found"
-  /user/login:
-    get:
-      tags:
-      - "user"
-      summary: "Logs user into the system"
-      description: ""
-      operationId: "loginUser"
-      produces:
-      - "application/json"
-      - "application/xml"
-      parameters:
-      - name: "username"
-        in: "query"
-        description: "The user name for login"
-        required: true
-        type: "string"
-      - name: "password"
-        in: "query"
-        description: "The password for login in clear text"
-        required: true
-        type: "string"
-      responses:
-        200:
-          description: "successful operation"
-          headers:
-            X-Expires-After:
-              type: "string"
-              format: "date-time"
-              description: "date in UTC when token expires"
-            X-Rate-Limit:
-              type: "integer"
-              format: "int32"
-              description: "calls per hour allowed by the user"
-          schema:
-            type: "string"
-        400:
-          description: "Invalid username/password supplied"
-  /user/logout:
-    get:
-      tags:
-      - "user"
-      summary: "Logs out current logged in user session"
-      description: ""
-      operationId: "logoutUser"
-      produces:
-      - "application/json"
-      - "application/xml"
-      parameters: []
-      responses:
-        default:
-          description: "successful operation"
-  /user:
-    post:
-      tags:
-      - "user"
-      summary: "Create user"
-      description: "This can only be done by the logged in user."
-      operationId: "createUser"
-      consumes:
-      - "application/json"
-      produces:
-      - "application/json"
-      - "application/xml"
-      parameters:
-      - in: "body"
-        name: "body"
-        description: "Created user object"
-        required: true
-        schema:
-          $ref: "#/definitions/User"
-      responses:
-        default:
-          description: "successful operation"
-securityDefinitions:
-  api_key:
-    type: "apiKey"
-    name: "api_key"
-    in: "header"
-  petstore_auth:
-    type: "oauth2"
-    authorizationUrl: "https://petstore.swagger.io/oauth/authorize"
-    flow: "implicit"
-    scopes:
-      read:pets: "read your pets"
-      write:pets: "modify pets in your account"
-definitions:
-  ApiResponse:
-    type: "object"
-    properties:
-      code:
-        type: "integer"
-        format: "int32"
-      type:
-        type: "string"
-      message:
-        type: "string"
-  Category:
-    type: "object"
-    properties:
-      id:
-        type: "integer"
-        format: "int64"
-      name:
-        type: "string"
-    xml:
-      name: "Category"
-  Pet:
-    type: "object"
-    required:
-    - "name"
-    - "photoUrls"
-    properties:
-      id:
-        type: "integer"
-        format: "int64"
-      category:
-        $ref: "#/definitions/Category"
-      name:
-        type: "string"
-        example: "doggie"
-      photoUrls:
-        type: "array"
-        xml:
-          wrapped: true
-        items:
-          type: "string"
-          xml:
-            name: "photoUrl"
-      tags:
-        type: "array"
-        xml:
-          wrapped: true
-        items:
-          xml:
-            name: "tag"
-          $ref: "#/definitions/Tag"
-      status:
-        type: "string"
-        description: "pet status in the store"
-        enum:
-        - "available"
-        - "pending"
-        - "sold"
-    xml:
-      name: "Pet"
-  Tag:
-    type: "object"
-    properties:
-      id:
-        type: "integer"
-        format: "int64"
-      name:
-        type: "string"
-    xml:
-      name: "Tag"
-  Order:
-    type: "object"
-    properties:
-      id:
-        type: "integer"
-        format: "int64"
-      petId:
-        type: "integer"
-        format: "int64"
-      quantity:
-        type: "integer"
-        format: "int32"
-      shipDate:
-        type: "string"
-        format: "date-time"
-      status:
-        type: "string"
-        description: "Order Status"
-        enum:
-        - "placed"
-        - "approved"
-        - "delivered"
-      complete:
-        type: "boolean"
-    xml:
-      name: "Order"
-  User:
-    type: "object"
-    properties:
-      id:
-        type: "integer"
-        format: "int64"
-      username:
-        type: "string"
-      firstName:
-        type: "string"
-      lastName:
-        type: "string"
-      email:
-        type: "string"
-      password:
-        type: "string"
-      phone:
-        type: "string"
-      userStatus:
-        type: "integer"
-        format: "int32"
-        description: "User Status"
-    xml:
-      name: "User"
-externalDocs:
-  description: "Find out more about Swagger"
-  url: "http://swagger.io"
+            $ref: '#/components/schemas/SkillSoftActivityDTO'
+    ProviderActivityDto:
+      type: object
+      properties:
+        title:
+          type: string
+        assetId:
+          type: string
+        parentAssetId:
+          type: string
+        assetType:
+          type: string
+        bin:
+          type: string
+        relevency:
+          format: int32
+          type: integer
+        launchURL:
+          type: string
+        assetDescription:
+          type: string
+        imageURL:
+          type: string
+        duration:
+          type: string
+    PaginatedSrdto-BaseSearchItemDto:
+      type: object
+      properties:
+        searchResults:
+          type: array
+          items:
+            $ref: '#/components/schemas/BaseSearchItemDto'
+        totalCount:
+          format: int32
+          type: integer
+        pageCount:
+          format: int32
+          type: integer
+    FilterQueryDTO:
+      type: object
+      properties:
+        name:
+          type: string
+        searchFieldName:
+          type: string
+        value:
+          type: string
+    SkillSoftActivityDTO:
+      type: object
+      properties:
+        title:
+          type: string
+        assetId:
+          type: string
+        parentAssetId:
+          type: string
+        assetType:
+          type: string
+        bin:
+          type: string
+        relevency:
+          format: int32
+          type: integer
+        launchURL:
+          type: string
+        assetDescription:
+          type: string
+        label:
+          type: string
+        imageURL:
+          type: string
+        pages:
+          type: string
+        bookType:
+          type: string
+        author:
+          type: string
+    BaseSearchItemDto:
+      type: object
+      properties:
+        id:
+          format: int32
+          type: integer
+        score:
+          type: string
+    PaginatedData-SkillDTO:
+      description: Pagination class details and data
+      type: object
+      properties:
+        pagination:
+          $ref: '#/components/schemas/PaginationDetails'
+          description: Details of Pagination
+        data:
+          description: Data. List of items
+          type: array
+          items:
+            $ref: '#/components/schemas/SkillDTO'
+    SkillDTO:
+      description: Gets or sets the skill dto object
+      type: object
+      properties:
+        id:
+          format: int32
+          description: Gets or sets the skill ID
+          type: integer
+        name:
+          description: Gets or sets the skill name
+          type: string
+        skillDomain:
+          $ref: '#/components/schemas/ExtSkillDomainDto'
+          description: Gets or sets the skill domain object
+        contentType:
+          $ref: '#/components/schemas/ContentTypeDTO'
+          description: Gets or sets the skill content type object
+        proficiency:
+          $ref: '#/components/schemas/ExtCodeDto'
+          description: Gets or sets the proficiency object
+        url:
+          description: Gets or sets the url
+          type: string
+        code:
+          description: Gets or sets the code
+          type: string
+        questionText:
+          description: Gets or sets the question text
+          type: string
+        descriptionText:
+          description: Gets or sets the description text
+          type: string
+        optional1:
+          $ref: '#/components/schemas/SkillOptional1DTO'
+          description: Gets or sets the option dto
+    ExtSkillDomainDto:
+      description: Object for Domain
+      type: object
+      properties:
+        id:
+          format: int32
+          description: Gets or sets the UserId
+          type: integer
+        name:
+          description: Gets or sets the OrganizationName
+          type: string
+    ContentTypeDTO:
+      description: Gets or sets the content type object
+      type: object
+      properties:
+        contentTypeId:
+          format: int32
+          description: Gets or sets the content type Id
+          type: integer
+        contentTypeName:
+          description: Gets or sets the content type name
+          type: string
+    ExtCodeDto:
+      description: DTO for Codes in portal.
+      type: object
+      properties:
+        itemCode:
+          description: Gets or sets Item Code.
+          type: string
+        itemText:
+          description: Gets or sets Item Text.
+          type: string
+    SkillOptional1DTO:
+      description: Gets or sets the skills optional object
+      type: object
+      properties:
+        text1:
+          description: Gets or sets the text 1 value
+          type: string
+        text2:
+          description: Gets or sets the text 2 value
+          type: string
+        text3:
+          description: Gets or sets the text 3 value
+          type: string
+        text4:
+          description: Gets or sets the text 4 value
+          type: string
+        date1:
+          format: date-time
+          description: Gets or sets the date 1 value
+          type: string
+        date2:
+          format: date-time
+          description: Gets or sets the date 2 value
+          type: string
+        money1:
+          format: double
+          description: Gets or sets the money 1 value
+          type: number
+        money2:
+          format: double
+          description: Gets or sets the money 2 value
+          type: number
+        integer1:
+          format: int32
+          description: Gets or sets the integer 1 value
+          type: integer
+        integer2:
+          format: int32
+          description: Gets or sets the integer 1 value
+          type: integer
+        float1:
+          format: double
+          description: Gets or sets the float 1 value
+          type: number
+        float2:
+          format: double
+          description: Gets or sets the float 2 value
+          type: number
+        ind1:
+          description: Gets or sets the Ind 1 value
+          type: boolean
+        ind2:
+          description: Gets or sets the Ind 2 value
+          type: boolean
+        memo1:
+          description: Gets or sets the Memo 1 value
+          type: string
+        memo2:
+          description: Gets or sets the Memo 2 value
+          type: string
+        currencyId:
+          description: 'Gets or sets the CurrencyId value. Applicable values: 10 = Euros, 11 = US Dollar, 13 = Australian Dollars, 15 = Canadian Dollars, 16 = Swiss Franc, 17 = Yuan Renminbi, 23 = GB Pounds, 31 = Japanese Yen, 34 = Mexican Peso, 69 = Indian Rupee'
+          type: string
+        currency:
+          description: Gets or sets the Currency name
+          type: string
+    GetRepliesRequestDto:
+      description: Request body to get replies
+      type: object
+      properties:
+        discussionId:
+          description: Identifier for discussion to lookup
+          type: string
+        blogPostId:
+          description: Identifier for blog posts to lookup
+          type: string
+        communityId:
+          description: Identifier for communities to lookup
+          type: string
+        modifiedDate:
+          description: 'Get replies greater than specified date, pattern: yyyy-MM-dd HH:mm:ss'
+          type: string
+        isActive:
+          description: 'Get deleted, active or all replies. Default: all'
+          type: boolean
+    TablePaginatedData-RepliesExtractDTO:
+      description: Table Generic Pagination class details and data
+      type: object
+      properties:
+        pagination:
+          $ref: '#/components/schemas/TablePaginationDetails'
+          description: Details of Pagination
+        data:
+          description: Data. List of items
+          type: array
+          items:
+            $ref: '#/components/schemas/RepliesExtractDTO'
+    TablePaginationDetails:
+      description: Generic Table Pagination details
+      type: object
+      properties:
+        page:
+          format: int32
+          description: The current page number from which the results would be shown
+          type: integer
+        limit:
+          format: int32
+          description: The max number of records that should be fetched by the call
+          type: integer
+        total:
+          format: int32
+          description: The total number of records returned by the call
+          type: integer
+    RepliesExtractDTO:
+      description: Replies Extract DTO
+      type: object
+      properties:
+        replyId:
+          description: Reply Id
+          type: string
+        communityId:
+          description: Community Id
+          type: string
+        parentPostId:
+          description: Parent Post Id
+          type: string
+        parentPostType:
+          description: 'The object type this reply belongs to: Discussion (2), BlogPost (4).'
+          enum:
+            - All
+            - Blog
+            - Discussion
+            - File
+            - BlogPost
+            - Flag
+          type: string
+        rootId:
+          description: Root Id
+          type: string
+        hierarchyIDs:
+          description: List of hierarchy IDs in the comment chain
+          type: array
+          items:
+            type: string
+        author:
+          $ref: '#/components/schemas/RepliesExtractAuthor'
+          description: Author details
+        replyContent:
+          description: Reply content
+          type: string
+        likesCount:
+          format: int32
+          description: Likes Count
+          type: integer
+        isActive:
+          description: Indicated the deleted status of the record
+          type: boolean
+        createdDate:
+          format: date-time
+          description: Blogpost create date
+          type: string
+        createdBy:
+          description: Created By
+          type: string
+        modifiedDate:
+          format: date-time
+          description: Blog modified date
+          type: string
+        modifiedBy:
+          description: Modified By
+          type: string
+        flaggingDetails:
+          description: Flagged by
+          type: array
+          items:
+            $ref: '#/components/schemas/RepliesFlaggedDTO'
+        likedBy:
+          description: Who liked
+          type: array
+          items:
+            $ref: '#/components/schemas/RepliesLikedDTO'
+    RepliesExtractAuthor:
+      description: Author object
+      type: object
+      properties:
+        userId:
+          description: UserId
+          type: string
+        fullName:
+          description: Full Name
+          type: string
+    RepliesFlaggedDTO:
+      description: Reply Flag DTO
+      type: object
+      properties:
+        userId:
+          description: User who flagged this object
+          type: string
+        flagReasonId:
+          description: "Reason this object was flagged\r\nInappropriate content = 10001, Illegal content = 10002, Other = 10003"
+          type: string
+        flagReasonText:
+          description: Optional comment why the object was flagged
+          type: string
+        isActive:
+          description: Is flag deleted
+          type: boolean
+    RepliesLikedDTO:
+      description: Reply like DTO
+      type: object
+      properties:
+        userId:
+          description: Person Id
+          type: string
+    PaginatedData-BlogExtractDetailsDTO:
+      description: Pagination class details and data
+      type: object
+      properties:
+        pagination:
+          $ref: '#/components/schemas/PaginationDetails'
+          description: Details of Pagination
+        data:
+          description: Data. List of items
+          type: array
+          items:
+            $ref: '#/components/schemas/BlogExtractDetailsDTO'
+    BlogExtractDetailsDTO:
+      description: Blog Extract Details DTO
+      type: object
+      properties:
+        blogId:
+          description: Blog Id
+          type: string
+        blogName:
+          description: Blog name
+          type: string
+        communityId:
+          description: Community Id
+          type: string
+        communityName:
+          description: Community name
+          type: string
+        blogDescription:
+          description: Blog description
+          type: string
+        author:
+          $ref: '#/components/schemas/BlogExtractAuthor'
+          description: Author details
+        blogPostCount:
+          format: int32
+          description: Blog Post Count
+          type: integer
+        createdDate:
+          format: date-time
+          description: Blogpost create date
+          type: string
+        createdBy:
+          description: Created By
+          type: string
+        modifiedDate:
+          format: date-time
+          description: Blog modified date
+          type: string
+        modifiedBy:
+          description: Modified By
+          type: string
+        isActive:
+          description: Indicated the deleted status of the record
+          type: boolean
+    BlogExtractAuthor:
+      description: Author object
+      type: object
+      properties:
+        userId:
+          description: UserId
+          type: string
+        fullName:
+          description: Full Name
+          type: string
+    LearningCatalogTreeDTO:
+      description: Learning Catalog DTO
+      type: object
+      properties:
+        notificationCount:
+          format: int32
+          description: The number of notification counts
+          type: integer
+        widgetDeeplinkUrl:
+          description: Widget deep link url is the url which shall be used to deep link to the application.
+          type: string
+        catalogs:
+          description: A list of Catalog Objects.
+          type: array
+          items:
+            $ref: '#/components/schemas/CatalogTree'
+        searchPageUrl:
+          description: Search Page Url
+          type: string
+        childNodes:
+          description: List of child topics under a parent topic (catalog)
+          type: array
+          items:
+            $ref: '#/components/schemas/CatalogTree'
+    CatalogTree:
+      description: Catalog Tree Object DTO
+      type: object
+      properties:
+        id:
+          format: int32
+          type: integer
+        name:
+          description: The name of the Catalog.
+          type: string
+        url:
+          description: The Url of the Catalog page
+          type: string
+        level:
+          format: int32
+          description: The level of the Catalog
+          type: integer
+        description:
+          description: The description of the Catalog
+          type: string
+        iconPath:
+          description: The iconPath of the Catalog
+          type: string
+        activitiesCount:
+          format: int32
+          description: activitiesCount
+          type: integer
+        parentId:
+          format: int32
+          description: parentId
+          type: integer
+        hasChild:
+          format: int32
+          description: hasChild
+          type: integer
+        topicHierarchy:
+          description: topicHierarchy is a representation of the child topics that belong to the parent Each value is a catalogId, the first ID will always be the parent catalogId
+          type: string
+        lastUpdated:
+          format: date-time
+          description: Last Updated date of Topic
+          type: string
+    OrganizationPersonDTO:
+      description: Person's Organization
+      type: object
+      properties:
+        id:
+          description: Gets or sets the id of the organization
+          type: string
+        name:
+          description: Gets or sets the name of the organization
+          type: string
+        code:
+          description: Gets or sets the code of the organization
+          type: string
+        isPrimary:
+          description: Gets or sets if organization is primary to the user
+          type: boolean
+        organizationTypeCode:
+          description: Gets or sets the type code(Business Unit/Department/Division etc.) of the organization
+          type: string
+        hierarchy:
+          $ref: '#/components/schemas/OrganizationHierarchyDTO'
+          description: Gets or sets the hierarchy of the Person's organization
+    OrganizationHierarchyDTO:
+      description: Organization's Hierarchy
+      type: object
+      properties:
+        id:
+          description: Get or sets the id of the hierarchy of the Person's organization
+          type: string
+        name:
+          description: Get or sets the name of the hierarchy of the Person's organization
+          type: string
+        level:
+          format: int32
+          description: Get or sets the level of the hierarchy of the Person's organization
+          type: integer
+        code:
+          description: Get or sets the code of the hierarchy of the Person's organization
+          type: string
+    PaginatedData-AssignedActivityListDto:
+      description: Pagination class details and data
+      type: object
+      properties:
+        pagination:
+          $ref: '#/components/schemas/PaginationDetails'
+          description: Details of Pagination
+        data:
+          description: Data. List of items
+          type: array
+          items:
+            $ref: '#/components/schemas/AssignedActivityListDto'
+    AssignedActivityListDto:
+      description: Assigned Activity Details item.
+      type: object
+      properties:
+        activityRecords:
+          description: Gets or sets a List of Activity Records
+          type: array
+          items:
+            $ref: '#/components/schemas/AssignedActivityDto'
+        totalRecords:
+          format: int32
+          description: Count of Total Records
+          type: integer
+    AssignedActivityDto:
+      description: Assigned Activity Details item.
+      type: object
+      properties:
+        userId:
+          description: Gets or sets the user ID
+          type: string
+        activityId:
+          format: int32
+          description: Gets or sets the activityID
+          type: integer
+        activityName:
+          description: Gets or sets the activity name
+          type: string
+        activityType:
+          description: Gets or sets the activity type
+          type: string
+        activityCode:
+          description: Gets or sets the activity code
+          type: string
+        assignmentStatus:
+          description: Gets or sets the activity assignment status
+          type: string
+        deliveryMethod:
+          description: Gets or sets the activity delivery method
+          type: string
+        priority:
+          description: Gets or sets the activity delivery method
+          type: string
+        assignmentDate:
+          format: date-time
+          description: Gets or sets the activity Assignment Date
+          type: string
+        dueDate:
+          format: date-time
+          description: Gets or sets the activity Due Date
+          type: string
+        lastCompletedDate:
+          format: date-time
+          description: Gets or sets the activity Last Completed Date
+          type: string
+        expirationDate:
+          format: date-time
+          description: Gets or sets the activity Expiration Date
+          type: string
+        launchUrl:
+          description: Gets or sets the activity launchUrl
+          type: string
+        assignmentType:
+          description: Indicates if assignment is Required or Recommended
+          type: string
+    GetSpecifiedUserCoursesRequestDto:
+      description: Request body for specified user courses
+      type: object
+      properties:
+        isMobileEnabled:
+          description: Specify to return Mobile Enabled activities true = return only mobile enabled activities false = return only activities that are not mobile enabled
+          type: boolean
+        isAssigned:
+          description: Specify to return for courses that are currently assigned and vice versa
+          type: boolean
+        isRequired:
+          description: Specify to return for courses that are currently required and vice versa
+          type: boolean
+        status:
+          description: 'List of values to filter by status. Applicable values: All Statuses = -2, No Status (Course is assigned to a user through organization, domain etc) = -1, Assigned = 0, Attended = 1, In Progress - Registered = 2, Expired = 3, Assigned Training = 6, Overdue = 8, In Progress - On Waiting List = 22, In Progress - Pending Approval = 23'
+          type: string
+        activityTypeId:
+          format: int32
+          description: type id of activity to filter by
+          type: integer
+        activityType:
+          description: type of activity to filter by
+          type: string
+        optionalText1:
+          description: Optionally search where UserCourses.OptionalInfo.Text1 is
+          type: string
+        optionalInteger1:
+          format: int32
+          description: Optionally search where UserCourses.OptionalInfo.Integer1 is
+          type: integer
+        modalityFilter:
+          description: 'Filter Values: Watch = -1, Read = -2, Listen = -3, Practice = -4, Custom Modality = 5'
+          type: string
+    PaginatedData-UserCoursesListDTO:
+      description: Pagination class details and data
+      type: object
+      properties:
+        pagination:
+          $ref: '#/components/schemas/PaginationDetails'
+          description: Details of Pagination
+        data:
+          description: Data. List of items
+          type: array
+          items:
+            $ref: '#/components/schemas/UserCoursesListDTO'
+    UserCoursesListDTO:
+      description: User Courses Details
+      type: object
+      properties:
+        userCourseRecords:
+          description: Gets or sets a List of User Courses
+          type: array
+          items:
+            $ref: '#/components/schemas/UserCoursesDTO'
+        totalRecords:
+          format: int32
+          description: Count of Total Records
+          type: integer
+    UserCoursesDTO:
+      description: User Course Details
+      type: object
+      properties:
+        activityId:
+          description: Gets or sets the activityId
+          type: string
+        activityName:
+          description: Gets or sets the activity name
+          type: string
+        activityDescription:
+          description: Gets or sets the activity description
+          type: string
+        registered:
+          description: Gets or sets the registered
+          type: string
+        cbtLaunchMtd:
+          description: "Gets or sets the CBTLaunchMtd\r\nSumTotal ToolBook = -1, AT&amp;T Connect = -14, SumTotal Content API = -3, AICC HACP = -4, Skillsoft Course Player = -5, Macromedia Authorware = -6, QuestionMark Perception AICC = -7, NETg Learning Studio = -8, Macromedia CourseBuilder = -9, SumTotal Virtual Classroom = -21, Knowledge Document = -22, Mentergy LearnLinc = -12, Skillsoft IT Skills = -13, AICC JavaScript = -20, Centra = -16, SumTotal Experience = -17, SCORM 1.2 = -18, Generic Document = -19, Skillsoft Skill Sim = -24, SCORM 2004 = -25, WebEx = -26, Adobe Acrobat Connect Professional = -27, LiveMeeting = -28, Quick Assessment = -29, Mobile SCORM 1.2 = -30, iLinc = -32, Experience API = -34, External Content = -33, HBP Course = -35, GoTo = -37, CMI5 = -36, SCORM 2004 V4 = -38"
+          type: string
+        cbtPath:
+          description: Gets or sets the CBTPath
+          type: string
+        startDate:
+          description: Gets or sets the startDate
+          type: string
+        activityImageUrl:
+          description: Gets or sets the activityImageURL
+          type: string
+        activityType:
+          description: Gets or sets the activityType
+          type: string
+        activityTypeId:
+          format: int32
+          description: Gets or sets the activityTypeId
+          type: integer
+        activityCode:
+          description: Gets or sets the ActivityCode
+          type: string
+        leMtd:
+          format: int32
+          description: Gets or sets the LEMtd
+          type: integer
+        isCourseDownloaded:
+          description: Gets or sets the isCourseDownloaded
+          type: boolean
+        maxAttemptsPerParent:
+          format: int32
+          description: Gets or sets the maxAttemptsPerParent
+          type: integer
+        maxAttempts:
+          format: int32
+          description: Gets or sets the maxAttempts
+          type: integer
+        minPctGrd:
+          format: int32
+          description: Gets or sets the minPctGrd
+          type: integer
+        maxTriesLeft:
+          format: int32
+          description: Gets or sets the maxTriesLeft
+          type: integer
+        maxAttemptsLeft:
+          format: int32
+          description: Gets or sets the maxAttemptsLeft
+          type: integer
+        status:
+          format: int32
+          description: "Gets or sets the status\r\nAll Statuses = -2, No Status (Course is assigned to a user through organization, domain etc) = -1, Assigned = 0, Attended = 1, In Progress - Registered = 2, Expired = 3, Assigned Training = 6, Overdue = 8, In Progress - On Waiting List = 22, In Progress - Pending Approval = 23"
+          type: integer
+        dateAssigned:
+          description: Gets or sets the dateAssigned
+          type: string
+        exactDueDate:
+          description: Gets or sets the exactDueDate
+          type: string
+        endDate:
+          description: Gets or sets the endDate
+          type: string
+        childActivity:
+          description: Gets or sets the childActivity
+          type: boolean
+        xAPIEnabled:
+          format: int32
+          description: Gets or sets the xAPIEnabled
+          type: integer
+        isFavorite:
+          description: Gets or sets the isFavorite
+          type: boolean
+        moocProviderId:
+          description: Gets or sets the moocProviderId
+          type: string
+        isActive:
+          format: int32
+          description: Gets or sets the isActive
+          type: integer
+        isMobileEnabled:
+          format: int32
+          description: Gets or sets the isMobileEnabled
+          type: integer
+        isAssigned:
+          format: int32
+          description: Gets or sets the isAssigned
+          type: integer
+        optionalText1:
+          description: Gets or sets the optionalText1
+          type: string
+        optionalInteger1:
+          format: int32
+          description: Gets or sets the optionalInteger1
+          type: integer
+        createdDate:
+          format: date-time
+          description: Gets or sets the createdDate
+          type: string
+        lastUpdatedDate:
+          format: date-time
+          description: Gets or sets the lastUpdatedDate
+          type: string
+        authorId:
+          format: int32
+          description: Gets or sets the id of the author
+          type: integer
+        launchUrl:
+          description: Gets or sets the launchUrl
+          type: string
+        pointsRange:
+          $ref: '#/components/schemas/GamificationPointsRangeDTO'
+          description: Gets or sets the launchUrl
+        contentType:
+          description: Gets or sets the activity content type
+          type: string
+        isRequired:
+          description: Gets or sets the is activity required. True = Required, False = Not Required, Null = Completed or Not Assigned
+          type: boolean
+        modalities:
+          description: Gets the modalities for the course
+          type: array
+          items:
+            type: string
+    GetUserTranscriptsRequestDto:
+      description: Request body for getting a user's transcripts
+      type: object
+      properties:
+        flag:
+          format: int32
+          description: Use to specify type of Activities return 1 = Standard Activities, 2 = Self-Reported Training, 3 = Continuing Education. If nothing is specified Standard activities along with Self-Reported Training are returned
+          type: integer
+        startDate:
+          format: date-time
+          description: Start Date of Activities
+          type: string
+        endDate:
+          format: date-time
+          description: End Date of Activities
+          type: string
+    PaginatedData-TranscriptActivityDto:
+      description: Pagination class details and data
+      type: object
+      properties:
+        pagination:
+          $ref: '#/components/schemas/PaginationDetails'
+          description: Details of Pagination
+        data:
+          description: Data. List of items
+          type: array
+          items:
+            $ref: '#/components/schemas/TranscriptActivityDto'
+    TranscriptActivityDto:
+      description: Transcript Activity
+      type: object
+      properties:
+        activityID:
+          format: int32
+          description: Gets the Id of the Activity
+          type: integer
+        activityName:
+          description: Gets or sets the transcripts Activity Name
+          type: string
+        attemptID:
+          format: int32
+          description: Gets the Id of the Attempt
+          type: integer
+        estimatedCreditHours:
+          format: double
+          description: Gets or sets the transcripts Activity Estimated Credit Hours
+          type: number
+        startDate:
+          format: date-time
+          description: Gets or sets the transcripts Activity Start Date
+          type: string
+        completionDate:
+          format: date-time
+          description: Gets or sets the transcripts Activity Completion Date
+          type: string
+        expiryDate:
+          format: date-time
+          description: Gets or sets the transcripts Activity Expiry Date
+          type: string
+        score:
+          format: double
+          description: Gets or sets the transcripts Activity Score
+          type: number
+        grade:
+          description: Gets or sets the transcripts Activity Grade
+          type: string
+        signatureStatus:
+          description: Gets or sets the transcripts Activity Signature Status
+          type: string
+        attendedDuration:
+          format: int32
+          description: Gets or sets the transcripts Activity Attended Duration
+          type: integer
+        completionCertificationStatus:
+          description: Gets or sets the transcripts Activity Completion Certification Status
+          type: string
+        type:
+          description: Gets or sets the transcripts Activity Type
+          type: string
+        customAttributes:
+          $ref: '#/components/schemas/CustomAttributesDTO'
+          description: Gets or sets the transcripts Activity Custom Attributes
+    CustomAttributesDTO:
+      description: Custom Attributes
+      type: object
+      properties:
+        creditCategory:
+          description: Gets or sets the Custom Attributes Credit Category
+          type: string
+        requirmentGroup:
+          description: Gets or sets the Custom Attributes Requirment Group
+          type: string
+        contributedPoints:
+          format: double
+          description: Gets or sets the Custom Attributes Contributed Points
+          type: number
+    PlaylistDataDTO:
+      description: Playlist data dto
+      type: object
+      properties:
+        playListInfo:
+          $ref: '#/components/schemas/UserPlaylistDTO'
+          description: ''
+        activityList:
+          description: ''
+          type: array
+          items:
+            $ref: '#/components/schemas/PlaylistActivityDetailDTO'
+    UserPlaylistDTO:
+      description: DTO for playlist
+      type: object
+      properties:
+        name:
+          description: ''
+          type: string
+        personId:
+          format: int32
+          description: ''
+          type: integer
+        status:
+          format: int32
+          description: ''
+          type: integer
+        isDeleted:
+          format: int32
+          description: ''
+          type: integer
+        isDefault:
+          format: int32
+          description: ''
+          type: integer
+        thumbnail:
+          description: ''
+          type: string
+        created:
+          format: date-time
+          description: ''
+          type: string
+        createdBy:
+          description: ''
+          type: string
+        modified:
+          format: date-time
+          description: ''
+          type: string
+        modifiedBy:
+          description: ''
+          type: string
+        activityCount:
+          format: int32
+          description: ''
+          type: integer
+        sharedOwnerName:
+          description: ''
+          type: string
+        playlistActivity:
+          description: ''
+          type: array
+          items:
+            $ref: '#/components/schemas/PlaylistActivityDTO'
+        isShared:
+          description: ''
+          type: boolean
+        isOwner:
+          description: ''
+          type: boolean
+        isSharedToMe:
+          description: ''
+          type: boolean
+        communityShare:
+          format: int32
+          description: ''
+          type: integer
+        communityShareCount:
+          format: int32
+          description: ''
+          type: integer
+        userShareCount:
+          format: int32
+          description: ''
+          type: integer
+        imageFlag:
+          format: int32
+          description: ''
+          type: integer
+        imageName:
+          description: ''
+          type: string
+        id:
+          format: int32
+          type: integer
+    PlaylistActivityDetailDTO:
+      type: object
+      properties:
+        name:
+          description: Gets or sets the activity name
+          type: string
+        description:
+          description: Gets or sets the activity description
+          type: string
+        activityType:
+          description: Gets or sets the activity type
+          type: string
+        rating:
+          description: Gets or sets the activity rating
+          type: string
+        activityCode:
+          description: Gets or sets the activity code
+          type: string
+        durationSec:
+          description: Gets or sets the duration
+          type: string
+        activityImageUrl:
+          description: Gets or sets the activity image url
+          type: string
+        defaultImagePath:
+          description: Gets or sets the activity image url
+          type: string
+        startDate:
+          description: ''
+          type: string
+        endDate:
+          description: ''
+          type: string
+        displayOrder:
+          format: int32
+          description: ''
+          type: integer
+        activityId:
+          format: int32
+          description: ''
+          type: integer
+        isActive:
+          format: int32
+          description: ''
+          type: integer
+        isRatingEnabled:
+          description: ''
+          type: boolean
+        isMobileEnabled:
+          format: int32
+          description: ''
+          type: integer
+        cbtLanuchMethodId:
+          format: int32
+          description: ''
+          type: integer
+        cbtPath:
+          description: ''
+          type: string
+        isChildActivity:
+          description: ''
+          type: boolean
+        xAPIEnabled:
+          description: ''
+          type: boolean
+        id:
+          format: int32
+          type: integer
+    PlaylistActivityDTO:
+      type: object
+      properties:
+        playlistId:
+          format: int32
+          description: ''
+          type: integer
+        activityId:
+          format: int32
+          description: ''
+          type: integer
+        displayOrder:
+          format: int32
+          description: ''
+          type: integer
+        id:
+          format: int32
+          description: ''
+          type: integer
+    UnauthorizedResult:
+      type: object
+      properties:
+        challenges:
+          type: array
+          items:
+            $ref: '#/components/schemas/AuthenticationHeaderValue'
+          readOnly: true
+        request:
+          type: object
+          readOnly: true
+    AuthenticationHeaderValue:
+      type: object
+      properties:
+        scheme:
+          type: string
+          readOnly: true
+        parameter:
+          type: string
+          readOnly: true
+    RequiredActivityRequestBody:
+      type: object
+      properties:
+        priorityId:
+          format: int32
+          description: Gets or sets the priority
+          type: integer
+        gradeId:
+          format: int32
+          description: Gets or sets the grade Id
+          type: integer
+        notes:
+          description: Gets or sets notes
+          type: string
+        dueDate:
+          format: date-time
+          description: Gets or sets due date
+          type: string
+        startDate:
+          format: date-time
+          description: Gets or sets start date
+          type: string
+        overrideFlag:
+          description: Gets or sets override indicator
+          type: boolean
+    UpdateUserProgressDTO:
+      description: Update user progress dto
+      type: object
+      properties:
+        status:
+          description: Gets or sets the activity status
+          enum:
+            - Attended
+            - NoShow
+            - Cancelled
+            - Registered
+            - Waived
+            - InProgress
+            - AttendedPendingSignature
+            - WaivedPendingSignature
+          type: string
+        statusDate:
+          format: date-time
+          description: Gets or sets the activity status date
+          type: string
+        score:
+          format: float
+          description: Gets or sets the activity score
+          type: number
+        passed:
+          description: Gets or sets the passed indicator
+          type: boolean
+        completed:
+          description: Gets or sets the completed indicator
+          type: boolean
+        note:
+          description: Gets or sets the notes for an activity
+          type: string
+        elapsedSeconds:
+          format: int32
+          description: Gets or sets the elapsed seconds for an activity
+          type: integer
